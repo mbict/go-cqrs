@@ -85,7 +85,6 @@ func (s *EventStore) FindStream(aggregateTypes []string, aggregateIds []uuid.UUI
 	}
 
 	rows, err := s.db.Query(query+" ORDER BY id", bindVars...)
-	fmt.Println(query, rows, err, bindVars)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -99,7 +98,7 @@ func (s *EventStore) FindStream(aggregateTypes []string, aggregateIds []uuid.UUI
 
 func (s *EventStore) LoadStream(aggregateType string, aggregateId uuid.UUID) (cqrs.EventStream, error) {
 
-	rows, err := s.selectStmt.Query(aggregateId, aggregateType)
+	rows, err := s.selectStmt.Query(MysqlUUID(aggregateId), aggregateType)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
