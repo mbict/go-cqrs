@@ -1,0 +1,41 @@
+{{define "PROJECTION" -}}
+package projections
+{{- template "IMPORTS" .Imports}}
+
+type {{title .Projection.Name}} struct {
+
+}
+
+type {{title .Projection.Name}}Projection struct {}
+
+func New{{title .Projection.Name}}Projection() *{{title .Projection.Name}}Projection {
+	return &{{title .Projection.Name}}Projection{}
+}
+
+//HandlesEvents returns the events handled by this projection
+func (p *{{title .Projection.Name}}Projection) HandlesEvents() []cqrs.Event {
+	return []cqrs.Event{
+	{{- range $event := .Projection.AllEvents}}
+		&events.{{title $event.Name}}{},
+{{- end}}
+	}
+}
+
+//HandleEvent will apply the event
+func (p *{{title .Projection.Name}}Projection) HandleEvent(event cqrs.Event) error {
+	switch e := event.(type) {
+	{{- range $event := .Projection.AllEvents}}
+	case *events.{{title $event.Name}}:
+		return p.handle{{title $event.Name}}(e)
+{{end}}
+	}
+	return cqrs.ErrUnknownEvent
+}
+
+{{range $event := .Projection.AllEvents}}
+func (p *{{title $.Projection.Name}}Projection) handle{{title $event.Name}}(event *events.{{title $event.Name}}) error{
+	//todo: implement event handling for this projection
+	return nil
+}
+{{end}}
+{{- end}}

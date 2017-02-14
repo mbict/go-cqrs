@@ -1,0 +1,53 @@
+{{define "AGGREGATE" -}}
+package aggregates
+{{- template "IMPORTS" .Imports}}
+
+var (
+	Err{{title .Aggregate.Name}}AlreadyExists = errors.New("{{title .Aggregate.Name}} already exists")
+)
+
+type {{title .Aggregate.Name}}Aggregate struct {
+	*cqrs.AggregateBase
+}
+
+func New{{title .Aggregate.Name}}Aggregate(id uuid.UUID) *{{title .Aggregate.Name}}Aggregate {
+	return &{{title .Aggregate.Name}}Aggregate{
+		AggregateBase: cqrs.NewAggregateBase(id),
+	}
+}
+
+func (a *{{title .Aggregate.Name}}Aggregate) AggregateType() string {
+	return "{{title .Aggregate.Name}}"
+}
+
+func (a *{{title .Aggregate.Name}}Aggregate) Apply(event cqrs.Event) error {
+	switch e := event.(type) {
+{{- range $event := .Aggregate.AllEvents}}
+	case *events.{{title $event.Name}}:
+		a.apply{{title $event.Name}}(e)
+{{end}}
+	}
+	return cqrs.ErrUnknownEvent
+}
+{{range $event := .Aggregate.AllEvents}}
+func (a *{{title $.Aggregate.Name}}Aggregate) apply{{title $event.Name}}(event *event.{{title $event.Name}}) {
+	//todo: implement apply logic here
+}
+{{end}}
+func (a *{{title .Aggregate.Name}}Aggregate) HandleCommand(command cqrs.Command) error {
+
+	switch c := command.(type) {
+	{{- range $command := .Aggregate.Commands}}
+	case *commands.{{title $command.Name}}:
+		return a.handle{{title $command.Name}}(c)
+{{end}}
+	}
+	return cqrs.ErrUnknownCommand
+}
+{{range $command := .Aggregate.Commands}}
+func (a *{{title $.Aggregate.Name}}Aggregate) handle{{title $command.Name}}(command *commands.{{title $command.Name}}) error {
+	//todo: implement command handling/validation here
+	return nil
+}
+{{end}}
+{{- end}}

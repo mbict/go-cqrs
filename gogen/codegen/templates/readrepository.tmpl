@@ -1,0 +1,16 @@
+{{define "REPOSITORY" -}}
+package repository
+{{- template "IMPORTS" .Imports}}
+{{ range $repo := .Domain.AllReadRepositories }}
+{{- if $repo.Filter}}
+type {{title $repo.Name}}Filter struct {
+{{- template "OBJECT" .Filter}}
+}
+{{- end}}
+
+type {{title $repo.Name}}Repository interface {
+	func FindAll({{- if $repo.Filter}}filter *{{title $repo.Name}}Filter{{end}}) ([]*models.{{title $repo.Model.TypeName}}, error)
+	func Find(id uuid.UUID) (*models.{{title $repo.Model.TypeName}}, error)
+}
+{{end}}
+{{- end}}
