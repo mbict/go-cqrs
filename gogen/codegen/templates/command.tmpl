@@ -1,0 +1,25 @@
+{{define "COMMAND" -}}
+package commands
+{{- template "IMPORTS" .Imports}}
+
+type {{title .Command.Name}} struct {
+	{{- if .Command.Params}}
+	{{- range $field := .Command.Params.Type}}
+	{{title $field.Name}} {{template "ATTRIBUTE" $field.Attribute}}
+	{{- end}}
+	{{- end}}
+}
+
+func (c *{{title .Command.Name}}) AggregateId() uuid.UUID {
+	return c.Id
+}
+
+func (c *{{title .Command.Name}}) AggregateType() string {
+	return "{{title .Command.RootAggregate.Name}}Aggregate"
+}
+
+func (c *{{title .Command.Name}}) CommandType() string {
+	return "{{title .Command.Name}}"
+}
+{{end}}
+
