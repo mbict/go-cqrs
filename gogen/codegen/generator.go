@@ -6,25 +6,68 @@ import (
 	"path"
 	cqrs "github.com/mbict/go-cqrs/gogen"
 	"github.com/mbict/gogen"
+	"github.com/mbict/gogen/codegen/generator"
 	"text/template"
+	"runtime"
+	"path/filepath"
 )
 
 type Generator struct {
-	gogen.CodeGenerator
+}
 
+type Codegen struct {
+	gogen.CodeGenerator
 	basePackage string
 }
 
-func NewGenerator(basePackage string) *Generator {
-	cg := gogen.NewCodeGenerator("./templates/*.tmpl")
+var gen *Generator
 
-	return &Generator{
+func init() {
+	gen = &Generator{}
+}
+
+func Register() {
+	generator.Register(gen)
+}
+
+
+func (g *Generator) Name() string {
+	return "cqrs"
+}
+
+func (g *Generator) Generate(path string) error {
+	//todo : remove go path
+	codegen := NewCodeGenerator(path)
+	fileWriters, err := codegen.Writers( cqrs.Root )
+	if err != nil {
+		return err
+	}
+
+	for _, fw := range fileWriters {
+		contents, err := fw.Write()
+		if err != nil {
+			return err
+		}
+		fmt.Println("==================")
+		fmt.Println(fw.Path())
+		fmt.Println("==================")
+		fmt.Println(contents)
+	}
+	return nil
+}
+
+
+func NewCodeGenerator(basePackage string) *Codegen {
+	_, file, _, _ := runtime.Caller(0)
+	templatePath := filepath.Join(path.Dir(file), "templates", "*.tmpl")
+	cg := gogen.NewCodeGenerator(templatePath)
+	return &Codegen{
 		CodeGenerator: cg,
-		basePackage:   basePackage,
+		basePackage: basePackage,
 	}
 }
 
-func (g *Generator) Writers(root interface{}) ([]gogen.FileWriter, error) {
+func (g *Codegen) Writers(root interface{}) ([]gogen.FileWriter, error) {
 	domain, ok := root.(*cqrs.DomainExpr)
 	if !ok {
 		return nil, fmt.Errorf("Incompatible root")
@@ -79,7 +122,7 @@ func (g *Generator) Writers(root interface{}) ([]gogen.FileWriter, error) {
 	return res, nil
 }
 
-func (g *Generator) GenerateEvent(e *cqrs.EventExpr) ([]gogen.Section, error) {
+func (g *Codegen) GenerateEvent(e *cqrs.EventExpr) ([]gogen.Section, error) {
 	t := g.Template().Lookup("EVENT")
 	if t == nil {
 		return nil, errors.New("template not found")
@@ -100,7 +143,7 @@ func (g *Generator) GenerateEvent(e *cqrs.EventExpr) ([]gogen.Section, error) {
 	return []gogen.Section{s}, nil
 }
 
-func (g *Generator) GenerateCommand(c *cqrs.CommandExpr) ([]gogen.Section, error) {
+func (g *Codegen) GenerateCommand(c *cqrs.CommandExpr) ([]gogen.Section, error) {
 	t := g.Template().Lookup("COMMAND")
 	if t == nil {
 		return nil, errors.New("template not found")
@@ -121,7 +164,7 @@ func (g *Generator) GenerateCommand(c *cqrs.CommandExpr) ([]gogen.Section, error
 	return []gogen.Section{s}, nil
 }
 
-func (g *Generator) GenerateAggregate(a *cqrs.AggregateExpr) ([]gogen.Section, error) {
+func (g *Codegen) GenerateAggregate(a *cqrs.AggregateExpr) ([]gogen.Section, error) {
 	t := g.Template().Lookup("AGGREGATE")
 	if t == nil {
 		return nil, errors.New("template not found")
@@ -145,7 +188,7 @@ func (g *Generator) GenerateAggregate(a *cqrs.AggregateExpr) ([]gogen.Section, e
 	return []gogen.Section{s}, nil
 }
 
-func (g *Generator) GenerateProjection(p *cqrs.ProjectionExpr) ([]gogen.Section, error) {
+func (g *Codegen) GenerateProjection(p *cqrs.ProjectionExpr) ([]gogen.Section, error) {
 	t := g.Template().Lookup("PROJECTION")
 	if t == nil {
 		return nil, errors.New("template not found")
@@ -167,7 +210,7 @@ func (g *Generator) GenerateProjection(p *cqrs.ProjectionExpr) ([]gogen.Section,
 	return []gogen.Section{s}, nil
 }
 
-func (g *Generator) GenerateAggregatesFactory(d *cqrs.DomainExpr) ([]gogen.Section, error) {
+func (g *Codegen) GenerateAggregatesFactory(d *cqrs.DomainExpr) ([]gogen.Section, error) {
 	t := g.Template().Lookup("AGGREGATE_FACTORY")
 	if t == nil {
 		return nil, errors.New("template not found")
@@ -189,7 +232,7 @@ func (g *Generator) GenerateAggregatesFactory(d *cqrs.DomainExpr) ([]gogen.Secti
 	return []gogen.Section{s}, nil
 }
 
-func (g *Generator) GenerateEventsFactory(d *cqrs.DomainExpr) ([]gogen.Section, error) {
+func (g *Codegen) GenerateEventsFactory(d *cqrs.DomainExpr) ([]gogen.Section, error) {
 	t := g.Template().Lookup("EVENT_FACTORY")
 	if t == nil {
 		return nil, errors.New("template not found")
@@ -211,7 +254,7 @@ func (g *Generator) GenerateEventsFactory(d *cqrs.DomainExpr) ([]gogen.Section, 
 	return []gogen.Section{s}, nil
 }
 
-func (g *Generator) GenerateRepositoryInterfaces(d *cqrs.DomainExpr) ([]gogen.Section, error) {
+func (g *Codegen) GenerateRepositoryInterfaces(d *cqrs.DomainExpr) ([]gogen.Section, error) {
 	t := g.Template().Lookup("REPOSITORY")
 	if t == nil {
 		return nil, errors.New("template not found")
@@ -237,7 +280,7 @@ func (g *Generator) GenerateRepositoryInterfaces(d *cqrs.DomainExpr) ([]gogen.Se
 	return []gogen.Section{s}, nil
 }
 
-func (g *Generator) GenerateDbRepository(r *cqrs.RepositoryExpr) ([]gogen.Section, error) {
+func (g *Codegen) GenerateDbRepository(r *cqrs.RepositoryExpr) ([]gogen.Section, error) {
 	t := g.Template().Lookup("DB_REPOSITORY")
 	if t == nil {
 		return nil, errors.New("template not found")
