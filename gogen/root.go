@@ -1,3 +1,3 @@
 package cqrs
 
-var Root []*DomainExpr
+var Root *DomainExpr

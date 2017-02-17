@@ -6,8 +6,9 @@ import (
 	. "github.com/mbict/gogen/dsl"
 )
 
-var CustomerModel = Usertype("Customer", func() {
-
+var TestModel = Usertype("Test", func() {
+	Attribute("Id", UUID)
+	Attribute("Name", String)
 })
 
 var _ = Domain("Ordering", func() {
@@ -46,24 +47,24 @@ var _ = Domain("Ordering", func() {
 	})
 
 	Projection("customernumbers", func() {
-		Repository("numbers", CustomerModel, func(){
+		HandlesEvents("CustomerCreated", "CustomerNumberChanged", "CustomerRemoved")
+		Repository("numbers", TestModel, func(){
 			Filter(func() {
 				Attribute("Id", String)
 				Attribute("Number", String)
 			})
 		})
-
-		HandlesEvents("CustomerCreated", "CustomerNumberChanged", "CustomerRemoved")
 	})
 
 	Projection("customers", func() {
-		Filter(func() {
-			Attribute("Id", String)
-			Attribute("Name", String)
-			Attribute("Number", String)
-		})
-
 		HandlesEvents("CustomerCreated", "CustomerNameChanged", "CustomerNumberChanged", "CustomerRemoved")
+		Repository("customer", TestModel, func() {
+			Filter(func() {
+				Attribute("Id", String)
+				Attribute("Name", String)
+				Attribute("Number", String)
+			})
+		})
 	})
 
 })

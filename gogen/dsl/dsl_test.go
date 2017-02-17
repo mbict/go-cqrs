@@ -1,4 +1,5 @@
-//package dsl
+package dsl
+
 //
 //import (
 //	. "gopkg.in/check.v1"
