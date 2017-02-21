@@ -48,7 +48,7 @@ var _ = Domain("Ordering", func() {
 
 	Projection("customernumbers", func() {
 		HandlesEvents("CustomerCreated", "CustomerNumberChanged", "CustomerRemoved")
-		Repository("numbers", TestModel, func(){
+		Repository("numbers", TestModel, func() {
 			Filter(func() {
 				Attribute("Id", String)
 				Attribute("Number", String)

@@ -3,12 +3,12 @@ package domain
 import (
 	"github.com/mbict/go-cqrs"
 	"github.com/satori/go.uuid"
-	"testing/base/events"
+	"testing/base/event"
 )
 
 func RegisterEventFactory(factory *cqrs.CallbackEventFactory) error {
 	itemDeletedEventFactory := func(aggregateId uuid.UUID, version int) cqrs.Event {
-		return &events.ItemDeleted{
+		return &event.ItemDeleted{
 			EventBase: cqrs.NewEventBase(aggregateId, version),
 		}
 	}
@@ -17,7 +17,7 @@ func RegisterEventFactory(factory *cqrs.CallbackEventFactory) error {
 	}
 
 	itemPriceUpdatedEventFactory := func(aggregateId uuid.UUID, version int) cqrs.Event {
-		return &events.ItemPriceUpdated{
+		return &event.ItemPriceUpdated{
 			EventBase: cqrs.NewEventBase(aggregateId, version),
 		}
 	}
@@ -26,7 +26,7 @@ func RegisterEventFactory(factory *cqrs.CallbackEventFactory) error {
 	}
 
 	itemTitleUpdatedEventFactory := func(aggregateId uuid.UUID, version int) cqrs.Event {
-		return &events.ItemTitleUpdated{
+		return &event.ItemTitleUpdated{
 			EventBase: cqrs.NewEventBase(aggregateId, version),
 		}
 	}
@@ -35,7 +35,7 @@ func RegisterEventFactory(factory *cqrs.CallbackEventFactory) error {
 	}
 
 	test2CreatedEventFactory := func(aggregateId uuid.UUID, version int) cqrs.Event {
-		return &events.Test2Created{
+		return &event.Test2Created{
 			EventBase: cqrs.NewEventBase(aggregateId, version),
 		}
 	}

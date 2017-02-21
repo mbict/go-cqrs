@@ -5,7 +5,7 @@ package domain
 func RegisterEventFactory(factory *cqrs.CallbackEventFactory) error {
 	{{- range $event := .Domain.AllEvents}}
 	{{untitle $event.Name}}EventFactory := func(aggregateId uuid.UUID, version int) cqrs.Event {
-		return &events.{{title $event.Name}}{
+		return &event.{{title $event.Name}}{
 			EventBase: cqrs.NewEventBase(aggregateId, version),
 		}
 	}

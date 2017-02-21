@@ -13,7 +13,7 @@ import (
 func Test(t *testing.T) { TestingT(t) }
 
 type GeneratorSuite struct {
-	generator *Generator
+	generator *Codegen
 
 	domain *cqrs.DomainExpr
 }
@@ -21,7 +21,7 @@ type GeneratorSuite struct {
 var _ = Suite(&GeneratorSuite{})
 
 func (s *GeneratorSuite) SetUpTest(c *C) {
-	s.generator = NewGenerator("testing/base")
+	s.generator = NewCodeGenerator("testing/base")
 	s.domain = &cqrs.DomainExpr{
 		Name: "maindomain",
 		Events: map[string]*cqrs.EventExpr{
@@ -145,15 +145,11 @@ func (s *GeneratorSuite) TestGenerateCommand(c *C) {
 		c.Check(err, IsNil)
 		c.Check(sec, HasLen, 1)
 
-		res, err := sec[0].Generate()
+		buf := bytes.NewBuffer(nil)
+		err = sec[0].Generate(buf)
 
 		c.Check(err, IsNil)
-
-		//dmp := diffmatchpatch.New()
-		//diffs := dmp.DiffMain(res, test.expected, true)
-		//fmt.Println(dmp.DiffPrettyText(diffs))
-
-		c.Check(res, Equals, test.expected, Commentf("Failed output check for test `%s`", test.name))
+		c.Check(buf.String(), Equals, test.expected, Commentf("Failed output check for test `%s`", test.name))
 	}
 }
 
@@ -212,10 +208,11 @@ func (s *GeneratorSuite) TestGenerateEvent(c *C) {
 		c.Check(err, IsNil)
 		c.Check(sec, HasLen, 1)
 
-		res, err := sec[0].Generate()
+		buf := bytes.NewBuffer(nil)
+		err = sec[0].Generate(buf)
 
 		c.Check(err, IsNil)
-		c.Check(res, Equals, test.expected, Commentf("Failed output check for test `%s`", test.name))
+		c.Check(buf.String(), Equals, test.expected, Commentf("Failed output check for test `%s`", test.name))
 	}
 }
 
@@ -289,10 +286,11 @@ func (s *GeneratorSuite) TestGenerateAggregate(c *C) {
 		c.Check(err, IsNil)
 		c.Check(sec, HasLen, 1)
 
-		res, err := sec[0].Generate()
+		buf := bytes.NewBuffer(nil)
+		err = sec[0].Generate(buf)
 
 		c.Check(err, IsNil)
-		c.Check(res, Equals, test.expected, Commentf("Failed output check for test `%s`", test.name))
+		c.Check(buf.String(), Equals, test.expected, Commentf("Failed output check for test `%s`", test.name))
 	}
 }
 
@@ -320,10 +318,11 @@ func (s *GeneratorSuite) TestGenerateProjection(c *C) {
 		c.Check(err, IsNil)
 		c.Check(sec, HasLen, 1)
 
-		res, err := sec[0].Generate()
+		buf := bytes.NewBuffer(nil)
+		err = sec[0].Generate(buf)
 
 		c.Check(err, IsNil)
-		c.Check(res, Equals, test.expected, Commentf("Failed output check for test `%s`", test.name))
+		c.Check(buf.String(), Equals, test.expected, Commentf("Failed output check for test `%s`", test.name))
 	}
 }
 
@@ -390,10 +389,11 @@ func (s *GeneratorSuite) TestGenerateEventsFactory(c *C) {
 		c.Check(err, IsNil)
 		c.Check(sec, HasLen, 1)
 
-		res, err := sec[0].Generate()
+		buf := bytes.NewBuffer(nil)
+		err = sec[0].Generate(buf)
 
 		c.Check(err, IsNil)
-		c.Check(res, Equals, test.expected, Commentf("Failed output check for test `%s`", test.name))
+		c.Check(buf.String(), Equals, test.expected, Commentf("Failed output check for test `%s`", test.name))
 	}
 }
 
@@ -427,10 +427,11 @@ func (s *GeneratorSuite) TestGenerateAggregatesFactory(c *C) {
 		c.Check(err, IsNil)
 		c.Check(sec, HasLen, 1)
 
-		res, err := sec[0].Generate()
+		buf := bytes.NewBuffer(nil)
+		err = sec[0].Generate(buf)
 
 		c.Check(err, IsNil)
-		c.Check(res, Equals, test.expected, Commentf("Failed output check for test `%s`", test.name))
+		c.Check(buf.String(), Equals, test.expected, Commentf("Failed output check for test `%s`", test.name))
 	}
 }
 
@@ -507,10 +508,11 @@ func (s *GeneratorSuite) TestGenerateRepositoryInterfaces(c *C) {
 		c.Check(err, IsNil)
 		c.Check(sec, HasLen, 1)
 
-		res, err := sec[0].Generate()
+		buf := bytes.NewBuffer(nil)
+		err = sec[0].Generate(buf)
 
 		c.Check(err, IsNil)
-		c.Check(res, Equals, test.expected, Commentf("Failed output check for test `%s`", test.name))
+		c.Check(buf.String(), Equals, test.expected, Commentf("Failed output check for test `%s`", test.name))
 	}
 }
 
@@ -603,10 +605,11 @@ func (s *GeneratorSuite) TestGenerateDatabaseRepository(c *C) {
 		c.Check(err, IsNil)
 		c.Check(sec, HasLen, 1)
 
-		res, err := sec[0].Generate()
+		buf := bytes.NewBuffer(nil)
+		err = sec[0].Generate(buf)
 
 		c.Check(err, IsNil)
-		c.Check(res, Equals, test.expected, Commentf("Failed output check for test `%s`", test.name))
+		c.Check(buf.String(), Equals, test.expected, Commentf("Failed output check for test `%s`", test.name))
 	}
 }
 

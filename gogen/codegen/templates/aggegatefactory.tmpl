@@ -5,7 +5,7 @@ package domain
 func RegisterAggregateFactories(factory *cqrs.CallbackAggregateFactory) error {
 	{{- range $aggregate := .Domain.Aggregates}}
 	{{untitle $aggregate.Name}}AggregateFactory := func(aggregateId uuid.UUID) cqrs.AggregateRoot {
-		return aggregates.New{{title $aggregate.Name}}Aggregate(aggregateId)
+		return aggregate.New{{title $aggregate.Name}}Aggregate(aggregateId)
 	}
 	if err := factory.RegisterCallback({{untitle $aggregate.Name}}AggregateFactory); err != nil {
 		return err

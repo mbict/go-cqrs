@@ -66,9 +66,15 @@ func (r *CommonDomainRepository) Load(aggregateType string, aggregateId uuid.UUI
 			return nil, fmt.Errorf("The repository cannot populate event data from stream for event type: %s", stream.EventType())
 		}
 
-		aggregate.Apply(event)
-		aggregate.IncrementVersion()
+		//aggregate.Apply(event)
+		//aggregate.IncrementVersion()
 	}
+
+	//snapshotversion = 0
+	//if snapshotversion-aggrevgate.Version() > 50 {
+	//	//create snapshot
+	//}
+
 
 	return aggregate, nil
 }
@@ -84,8 +90,13 @@ func (r *CommonDomainRepository) Save(aggregate AggregateRoot) error {
 		if r.eventBus != nil {
 			r.eventBus.PublishEvent(event)
 		}
+
+		aggregate.Apply(event)
+
 	}
 
 	aggregate.ClearUncommittedEvents()
+
+	//snapshot strategy
 	return nil
 }
