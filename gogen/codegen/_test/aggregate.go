@@ -1,11 +1,11 @@
-package aggregates
+package aggregate
 
 import (
 	"errors"
 	"github.com/mbict/go-cqrs"
 	"github.com/satori/go.uuid"
-	"testing/base/commands"
-	"testing/base/events"
+	"testing/base/command"
+	"testing/base/event"
 )
 
 var (

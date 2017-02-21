@@ -1,5 +1,5 @@
 {{define "PROJECTION" -}}
-package projections
+package projection
 {{- template "IMPORTS" .Imports}}
 
 type {{title .Projection.Name}} struct {
@@ -16,7 +16,7 @@ func New{{title .Projection.Name}}Projection() *{{title .Projection.Name}}Projec
 func (p *{{title .Projection.Name}}Projection) HandlesEvents() []cqrs.Event {
 	return []cqrs.Event{
 	{{- range $event := .Projection.AllEvents}}
-		&events.{{title $event.Name}}{},
+		&event.{{title $event.Name}}{},
 {{- end}}
 	}
 }
@@ -25,7 +25,7 @@ func (p *{{title .Projection.Name}}Projection) HandlesEvents() []cqrs.Event {
 func (p *{{title .Projection.Name}}Projection) HandleEvent(event cqrs.Event) error {
 	switch e := event.(type) {
 	{{- range $event := .Projection.AllEvents}}
-	case *events.{{title $event.Name}}:
+	case *event.{{title $event.Name}}:
 		return p.handle{{title $event.Name}}(e)
 {{end}}
 	}
@@ -33,7 +33,7 @@ func (p *{{title .Projection.Name}}Projection) HandleEvent(event cqrs.Event) err
 }
 
 {{range $event := .Projection.AllEvents}}
-func (p *{{title $.Projection.Name}}Projection) handle{{title $event.Name}}(event *events.{{title $event.Name}}) error{
+func (p *{{title $.Projection.Name}}Projection) handle{{title $event.Name}}(event *event.{{title $event.Name}}) error{
 	//todo: implement event handling for this projection
 	return nil
 }

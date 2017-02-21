@@ -25,6 +25,7 @@ func Aggregate(name string, dsl func()) {
 		Name:   name,
 		Domain: domain,
 	}
+	domain.Aggregates = append(domain.Aggregates, aggregate)
 	dslengine.Execute(dsl, aggregate)
 }
 

@@ -10,6 +10,7 @@ import (
 	"text/template"
 	"runtime"
 	"path/filepath"
+	"github.com/mbict/gogen/lib"
 )
 
 type Generator struct {
@@ -30,32 +31,15 @@ func Register() {
 	generator.Register(gen)
 }
 
-
 func (g *Generator) Name() string {
 	return "cqrs"
 }
 
-func (g *Generator) Generate(path string) error {
+func (g *Generator) Generate(path string) ([]gogen.FileWriter, error) {
 	//todo : remove go path
 	codegen := NewCodeGenerator(path)
-	fileWriters, err := codegen.Writers( cqrs.Root )
-	if err != nil {
-		return err
-	}
-
-	for _, fw := range fileWriters {
-		contents, err := fw.Write()
-		if err != nil {
-			return err
-		}
-		fmt.Println("==================")
-		fmt.Println(fw.Path())
-		fmt.Println("==================")
-		fmt.Println(contents)
-	}
-	return nil
+	return codegen.Writers(cqrs.Root)
 }
-
 
 func NewCodeGenerator(basePackage string) *Codegen {
 	_, file, _, _ := runtime.Caller(0)
@@ -63,7 +47,7 @@ func NewCodeGenerator(basePackage string) *Codegen {
 	cg := gogen.NewCodeGenerator(templatePath)
 	return &Codegen{
 		CodeGenerator: cg,
-		basePackage: basePackage,
+		basePackage:   basePackage,
 	}
 }
 
@@ -74,14 +58,13 @@ func (g *Codegen) Writers(root interface{}) ([]gogen.FileWriter, error) {
 	}
 
 	res := []gogen.FileWriter{}
-
 	for _, a := range domain.Aggregates {
 		s, err := g.GenerateAggregate(a)
 		if err != nil {
 			return nil, err
 		}
 
-		file := fmt.Sprintf("domain/aggregate/%s.go", a.Name)
+		file := fmt.Sprintf("domain/aggregate/%s.go", lib.SnakeCase(a.Name))
 		fwProjection := gogen.NewFileWriter(s, file)
 		res = append(res, fwProjection)
 
@@ -91,7 +74,7 @@ func (g *Codegen) Writers(root interface{}) ([]gogen.FileWriter, error) {
 				return nil, err
 			}
 
-			file := fmt.Sprintf("domain/commands/%s.go", c.Name)
+			file := fmt.Sprintf("domain/commands/%s.go", lib.SnakeCase(c.Name))
 			fwCommand := gogen.NewFileWriter(s, file)
 			res = append(res, fwCommand)
 		}
@@ -103,7 +86,7 @@ func (g *Codegen) Writers(root interface{}) ([]gogen.FileWriter, error) {
 			return nil, err
 		}
 
-		file := fmt.Sprintf("domain/events/%s.go", e.Name)
+		file := fmt.Sprintf("domain/events/%s.go", lib.SnakeCase(e.Name))
 		fwEvent := gogen.NewFileWriter(s, file)
 		res = append(res, fwEvent)
 	}
@@ -114,9 +97,43 @@ func (g *Codegen) Writers(root interface{}) ([]gogen.FileWriter, error) {
 			return nil, err
 		}
 
-		file := fmt.Sprintf("domain/projection/%s.go", p.Name)
+		file := fmt.Sprintf("domain/projection/%s.go", lib.SnakeCase(p.Name))
 		fwProjection := gogen.NewFileWriter(s, file)
 		res = append(res, fwProjection)
+	}
+
+	s, err := g.GenerateAggregatesFactory(domain)
+	if err != nil {
+		return nil, err
+	}
+	fwAggregateFactory := gogen.NewFileWriter(s, "domain/aggregate_factory.go")
+	res = append(res, fwAggregateFactory)
+
+
+	s, err = g.GenerateEventsFactory(domain)
+	if err != nil {
+		return nil, err
+	}
+	fwEventFactory := gogen.NewFileWriter(s, "domain/event_factory.go")
+	res = append(res, fwEventFactory)
+
+
+	s, err = g.GenerateRepositoryInterfaces(domain)
+	if err != nil {
+		return nil, err
+	}
+	fwRepository := gogen.NewFileWriter(s, "domain/repository/repository.go")
+	res = append(res, fwRepository)
+
+	for _, r := range domain.AllReadRepositories() {
+		s, err := g.GenerateDbRepository(r)
+		if err != nil {
+			return nil, err
+		}
+
+		file := fmt.Sprintf("domain/repository/sql/%s_repository.go", lib.SnakeCase(r.Name))
+		fwDBRepository := gogen.NewFileWriter(s, file)
+		res = append(res, fwDBRepository)
 	}
 
 	return res, nil
@@ -128,7 +145,7 @@ func (g *Codegen) GenerateEvent(e *cqrs.EventExpr) ([]gogen.Section, error) {
 		return nil, errors.New("template not found")
 	}
 
-	imports := gogen.NewImports(path.Join(g.basePackage, "events"))
+	imports := gogen.NewImports(path.Join(g.basePackage, "event"))
 	imports.Add("github.com/mbict/go-cqrs")
 	imports.AddFromAttribute(e.Attributes)
 
@@ -170,12 +187,12 @@ func (g *Codegen) GenerateAggregate(a *cqrs.AggregateExpr) ([]gogen.Section, err
 		return nil, errors.New("template not found")
 	}
 
-	imports := gogen.NewImports(path.Join(g.basePackage, "Aggregates"))
+	imports := gogen.NewImports(path.Join(g.basePackage, "aggregate"))
 	imports.Add("errors")
 	imports.Add("github.com/mbict/go-cqrs")
 	imports.Add(gogen.UUID.Package)
-	imports.Add(path.Join(g.basePackage, "events"))
-	imports.Add(path.Join(g.basePackage, "commands"))
+	imports.Add(path.Join(g.basePackage, "event"))
+	imports.Add(path.Join(g.basePackage, "command"))
 
 	s := gogen.Section{
 		Template: template.Must(t.Clone()),
@@ -194,10 +211,10 @@ func (g *Codegen) GenerateProjection(p *cqrs.ProjectionExpr) ([]gogen.Section, e
 		return nil, errors.New("template not found")
 	}
 
-	imports := gogen.NewImports(path.Join(g.basePackage, "Projections"))
+	imports := gogen.NewImports(path.Join(g.basePackage, "projection"))
 	imports.Add("errors")
 	imports.Add("github.com/mbict/go-cqrs")
-	imports.Add(path.Join(g.basePackage, "events"))
+	imports.Add(path.Join(g.basePackage, "event"))
 
 	s := gogen.Section{
 		Template: template.Must(t.Clone()),
@@ -219,7 +236,7 @@ func (g *Codegen) GenerateAggregatesFactory(d *cqrs.DomainExpr) ([]gogen.Section
 	imports := gogen.NewImports(g.basePackage)
 	imports.Add("github.com/mbict/go-cqrs")
 	imports.Add(gogen.UUID.Package)
-	imports.Add(path.Join(g.basePackage, "aggregates"))
+	imports.Add(path.Join(g.basePackage, "aggregate"))
 
 	s := gogen.Section{
 		Template: template.Must(t.Clone()),
@@ -241,7 +258,7 @@ func (g *Codegen) GenerateEventsFactory(d *cqrs.DomainExpr) ([]gogen.Section, er
 	imports := gogen.NewImports(g.basePackage)
 	imports.Add("github.com/mbict/go-cqrs")
 	imports.Add(gogen.UUID.Package)
-	imports.Add(path.Join(g.basePackage, "events"))
+	imports.Add(path.Join(g.basePackage, "event"))
 
 	s := gogen.Section{
 		Template: template.Must(t.Clone()),
@@ -298,8 +315,8 @@ func (g *Codegen) GenerateDbRepository(r *cqrs.RepositoryExpr) ([]gogen.Section,
 	s := gogen.Section{
 		Template: template.Must(t.Clone()),
 		Data: map[string]interface{}{
-			"Repository":  r,
-			"Imports":     imports,
+			"Repository": r,
+			"Imports":    imports,
 		},
 	}
 
