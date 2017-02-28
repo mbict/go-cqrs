@@ -23,7 +23,7 @@ func (a *{{title .Aggregate.Name}}Aggregate) AggregateType() string {
 func (a *{{title .Aggregate.Name}}Aggregate) Apply(event cqrs.Event) error {
 	switch e := event.(type) {
 {{- range $event := .Aggregate.AllEvents}}
-	case *events.{{title $event.Name}}:
+	case *event.{{title $event.Name}}:
 		a.apply{{title $event.Name}}(e)
 {{end}}
 	}
@@ -38,14 +38,14 @@ func (a *{{title .Aggregate.Name}}Aggregate) HandleCommand(command cqrs.Command)
 
 	switch c := command.(type) {
 	{{- range $command := .Aggregate.Commands}}
-	case *commands.{{title $command.Name}}:
+	case *command.{{title $command.Name}}:
 		return a.handle{{title $command.Name}}(c)
 {{end}}
 	}
 	return cqrs.ErrUnknownCommand
 }
 {{range $command := .Aggregate.Commands}}
-func (a *{{title $.Aggregate.Name}}Aggregate) handle{{title $command.Name}}(command *commands.{{title $command.Name}}) error {
+func (a *{{title $.Aggregate.Name}}Aggregate) handle{{title $command.Name}}(command *command.{{title $command.Name}}) error {
 	//todo: implement command handling/validation here
 	return nil
 }

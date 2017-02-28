@@ -3,7 +3,7 @@ package domain
 import (
 	"github.com/mbict/go-cqrs"
 	"github.com/satori/go.uuid"
-	"testing/base/aggregate"
+	"testing/base/domain/aggregate"
 )
 
 func RegisterAggregateFactories(factory *cqrs.CallbackAggregateFactory) error {

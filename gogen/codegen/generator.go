@@ -74,7 +74,7 @@ func (g *Codegen) Writers(root interface{}) ([]gogen.FileWriter, error) {
 				return nil, err
 			}
 
-			file := fmt.Sprintf("domain/commands/%s.go", lib.SnakeCase(c.Name))
+			file := fmt.Sprintf("domain/command/%s.go", lib.SnakeCase(c.Name))
 			fwCommand := gogen.NewFileWriter(s, file)
 			res = append(res, fwCommand)
 		}
@@ -86,7 +86,7 @@ func (g *Codegen) Writers(root interface{}) ([]gogen.FileWriter, error) {
 			return nil, err
 		}
 
-		file := fmt.Sprintf("domain/events/%s.go", lib.SnakeCase(e.Name))
+		file := fmt.Sprintf("domain/event/%s.go", lib.SnakeCase(e.Name))
 		fwEvent := gogen.NewFileWriter(s, file)
 		res = append(res, fwEvent)
 	}
@@ -145,7 +145,7 @@ func (g *Codegen) GenerateEvent(e *cqrs.EventExpr) ([]gogen.Section, error) {
 		return nil, errors.New("template not found")
 	}
 
-	imports := gogen.NewImports(path.Join(g.basePackage, "event"))
+	imports := gogen.NewImports(path.Join(g.basePackage, "domain/event"))
 	imports.Add("github.com/mbict/go-cqrs")
 	imports.AddFromAttribute(e.Attributes)
 
@@ -166,7 +166,7 @@ func (g *Codegen) GenerateCommand(c *cqrs.CommandExpr) ([]gogen.Section, error) 
 		return nil, errors.New("template not found")
 	}
 
-	imports := gogen.NewImports("")
+	imports := gogen.NewImports(path.Join(g.basePackage, "domain/command"))
 	imports.Add(gogen.UUID.Package)
 	imports.AddFromAttribute(c.Params)
 
@@ -187,12 +187,12 @@ func (g *Codegen) GenerateAggregate(a *cqrs.AggregateExpr) ([]gogen.Section, err
 		return nil, errors.New("template not found")
 	}
 
-	imports := gogen.NewImports(path.Join(g.basePackage, "aggregate"))
+	imports := gogen.NewImports(path.Join(g.basePackage, "domain/aggregate"))
 	imports.Add("errors")
 	imports.Add("github.com/mbict/go-cqrs")
 	imports.Add(gogen.UUID.Package)
-	imports.Add(path.Join(g.basePackage, "event"))
-	imports.Add(path.Join(g.basePackage, "command"))
+	imports.Add(path.Join(g.basePackage, "domain/event"))
+	imports.Add(path.Join(g.basePackage, "domain/command"))
 
 	s := gogen.Section{
 		Template: template.Must(t.Clone()),
@@ -211,10 +211,10 @@ func (g *Codegen) GenerateProjection(p *cqrs.ProjectionExpr) ([]gogen.Section, e
 		return nil, errors.New("template not found")
 	}
 
-	imports := gogen.NewImports(path.Join(g.basePackage, "projection"))
+	imports := gogen.NewImports(path.Join(g.basePackage, "domain/projection"))
 	imports.Add("errors")
 	imports.Add("github.com/mbict/go-cqrs")
-	imports.Add(path.Join(g.basePackage, "event"))
+	imports.Add(path.Join(g.basePackage, "domain/event"))
 
 	s := gogen.Section{
 		Template: template.Must(t.Clone()),
@@ -233,10 +233,10 @@ func (g *Codegen) GenerateAggregatesFactory(d *cqrs.DomainExpr) ([]gogen.Section
 		return nil, errors.New("template not found")
 	}
 
-	imports := gogen.NewImports(g.basePackage)
+	imports := gogen.NewImports(path.Join(g.basePackage, "domain"))
 	imports.Add("github.com/mbict/go-cqrs")
 	imports.Add(gogen.UUID.Package)
-	imports.Add(path.Join(g.basePackage, "aggregate"))
+	imports.Add(path.Join(g.basePackage, "domain/aggregate"))
 
 	s := gogen.Section{
 		Template: template.Must(t.Clone()),
@@ -255,10 +255,10 @@ func (g *Codegen) GenerateEventsFactory(d *cqrs.DomainExpr) ([]gogen.Section, er
 		return nil, errors.New("template not found")
 	}
 
-	imports := gogen.NewImports(g.basePackage)
+	imports := gogen.NewImports(path.Join(g.basePackage, "domain"))
 	imports.Add("github.com/mbict/go-cqrs")
 	imports.Add(gogen.UUID.Package)
-	imports.Add(path.Join(g.basePackage, "event"))
+	imports.Add(path.Join(g.basePackage, "domain/event"))
 
 	s := gogen.Section{
 		Template: template.Must(t.Clone()),
@@ -277,7 +277,7 @@ func (g *Codegen) GenerateRepositoryInterfaces(d *cqrs.DomainExpr) ([]gogen.Sect
 		return nil, errors.New("template not found")
 	}
 
-	imports := gogen.NewImports(g.basePackage)
+	imports := gogen.NewImports(path.Join(g.basePackage, "domain/repository"))
 	imports.Add(gogen.UUID.Package)
 	imports.Add(path.Join(g.basePackage, "models"))
 	for _, r := range d.AllReadRepositories() {
@@ -303,7 +303,7 @@ func (g *Codegen) GenerateDbRepository(r *cqrs.RepositoryExpr) ([]gogen.Section,
 		return nil, errors.New("template not found")
 	}
 
-	imports := gogen.NewImports(g.basePackage)
+	imports := gogen.NewImports(path.Join(g.basePackage, "domain/repository/sql"))
 	imports.Add("database/sql")
 	imports.Add(gogen.UUID.Package)
 	imports.Add("github.com/masterminds/squirrel")
