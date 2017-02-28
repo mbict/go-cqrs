@@ -6,7 +6,7 @@ import (
 )
 
 func domainDefinition() (*DomainExpr, bool) {
-	d, ok := dslengine.CurrentDefinition().(*DomainExpr)
+	d, ok := dslengine.Current().(*DomainExpr)
 	if !ok {
 		dslengine.IncompatibleDSL()
 	}
@@ -14,7 +14,7 @@ func domainDefinition() (*DomainExpr, bool) {
 }
 
 func aggregateDefinition() (*AggregateExpr, bool) {
-	a, ok := dslengine.CurrentDefinition().(*AggregateExpr)
+	a, ok := dslengine.Current().(*AggregateExpr)
 	if !ok {
 		dslengine.IncompatibleDSL()
 	}
@@ -22,7 +22,7 @@ func aggregateDefinition() (*AggregateExpr, bool) {
 }
 
 func commandDefinition() (*CommandExpr, bool) {
-	c, ok := dslengine.CurrentDefinition().(*CommandExpr)
+	c, ok := dslengine.Current().(*CommandExpr)
 	if !ok {
 		dslengine.IncompatibleDSL()
 	}
@@ -30,7 +30,7 @@ func commandDefinition() (*CommandExpr, bool) {
 }
 
 func projectionDefinition() (*ProjectionExpr, bool) {
-	p, ok := dslengine.CurrentDefinition().(*ProjectionExpr)
+	p, ok := dslengine.Current().(*ProjectionExpr)
 	if !ok {
 		dslengine.IncompatibleDSL()
 	}
@@ -38,7 +38,7 @@ func projectionDefinition() (*ProjectionExpr, bool) {
 }
 
 func repositoryDefinition() (*RepositoryExpr, bool) {
-	p, ok := dslengine.CurrentDefinition().(*RepositoryExpr)
+	p, ok := dslengine.Current().(*RepositoryExpr)
 	if !ok {
 		dslengine.IncompatibleDSL()
 	}
