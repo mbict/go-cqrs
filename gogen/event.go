@@ -16,3 +16,8 @@ type EventExpr struct {
 func (e *EventExpr) Context() string {
 	return "event"
 }
+
+
+func (e *EventExpr) Attribute() *gogen.AttributeExpr {
+	return e.Attributes
+}

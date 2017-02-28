@@ -5,6 +5,7 @@ import (
 	"github.com/masterminds/squirrel"
 	"github.com/satori/go.uuid"
 	"testing/base/models"
+	"testing/base/repository"
 )
 
 type dbProductitemRepository struct {
@@ -21,7 +22,7 @@ func NewProductitemRepository(db *sql.DB) repository.ProductitemRepository {
 	}
 }
 
-func (r *dbProductitemRepository) FindAll(filter *ProductitemFilter) ([]*models.Item, error) {
+func (r *dbProductitemRepository) FindAll(filter *repository.ProductitemFilter) ([]*models.Item, error) {
 	rows, err := r.apply(filter).RunWith(r.db).Query()
 	if err != nil && err != sql.ErrNoRows {
 		return nil, err
@@ -51,7 +52,8 @@ func (r *dbProductitemRepository) Find(id uuid.UUID) (*models.Item, error) {
 	}
 	return &item, nil
 }
-func (f *dbProductitemRepository) apply(filter *ProductitemFilter) squirrel.SelectBuilder {
+
+func (f *dbProductitemRepository) apply(filter *repository.ProductitemFilter) squirrel.SelectBuilder {
 	builder := productitemQuery
 
 	if len(filter.Id) > 0 {

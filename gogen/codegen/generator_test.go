@@ -66,8 +66,8 @@ func (s *GeneratorSuite) TestGenerateCommand(c *C) {
 		{
 			name: "command with no params",
 			command: &cqrs.CommandExpr{
-				Name:          "test",
-				Events:        []string{},
+				Name:   "test",
+				Events: []string{},
 				Params: &gogen.AttributeExpr{
 					Type: &gogen.Object{
 						&gogen.Field{

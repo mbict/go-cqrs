@@ -5,6 +5,7 @@ import (
 	"github.com/masterminds/squirrel"
 	"github.com/satori/go.uuid"
 	"testing/base/models"
+	"testing/base/repository"
 )
 
 type dbProductitemRepository struct {

@@ -25,6 +25,7 @@ func Projection(name string, dsl func()) {
 		Name:   name,
 		Domain: domain,
 	}
+	domain.Projections = append(domain.Projections, projection)
 	dslengine.Execute(dsl, projection)
 }
 
