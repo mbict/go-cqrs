@@ -3,7 +3,7 @@ package projection
 import (
 	"errors"
 	"github.com/mbict/go-cqrs"
-	"testing/base/event"
+	"testing/base/domain/event"
 )
 
 type Items struct {

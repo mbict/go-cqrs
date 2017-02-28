@@ -3,7 +3,7 @@ package domain
 import (
 	"github.com/mbict/go-cqrs"
 	"github.com/satori/go.uuid"
-	"testing/base/event"
+	"testing/base/domain/event"
 )
 
 func RegisterEventFactory(factory *cqrs.CallbackEventFactory) error {

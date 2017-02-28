@@ -4,8 +4,8 @@ import (
 	"errors"
 	"github.com/mbict/go-cqrs"
 	"github.com/satori/go.uuid"
-	"testing/base/command"
-	"testing/base/event"
+	"testing/base/domain/command"
+	"testing/base/domain/event"
 )
 
 var (
@@ -28,16 +28,16 @@ func (a *ItemAggregate) AggregateType() string {
 
 func (a *ItemAggregate) Apply(event cqrs.Event) error {
 	switch e := event.(type) {
-	case *events.ItemCreated:
+	case *event.ItemCreated:
 		a.applyItemCreated(e)
 
-	case *events.ItemTitleUpdated:
+	case *event.ItemTitleUpdated:
 		a.applyItemTitleUpdated(e)
 
-	case *events.ItemPriceUpdated:
+	case *event.ItemPriceUpdated:
 		a.applyItemPriceUpdated(e)
 
-	case *events.ItemDeleted:
+	case *event.ItemDeleted:
 		a.applyItemDeleted(e)
 
 	}
@@ -63,30 +63,30 @@ func (a *ItemAggregate) applyItemDeleted(event *event.ItemDeleted) {
 func (a *ItemAggregate) HandleCommand(command cqrs.Command) error {
 
 	switch c := command.(type) {
-	case *commands.CreateItem:
+	case *command.CreateItem:
 		return a.handleCreateItem(c)
 
-	case *commands.UpdateItem:
+	case *command.UpdateItem:
 		return a.handleUpdateItem(c)
 
-	case *commands.DeleteItem:
+	case *command.DeleteItem:
 		return a.handleDeleteItem(c)
 
 	}
 	return cqrs.ErrUnknownCommand
 }
 
-func (a *ItemAggregate) handleCreateItem(command *commands.CreateItem) error {
+func (a *ItemAggregate) handleCreateItem(command *command.CreateItem) error {
 	//todo: implement command handling/validation here
 	return nil
 }
 
-func (a *ItemAggregate) handleUpdateItem(command *commands.UpdateItem) error {
+func (a *ItemAggregate) handleUpdateItem(command *command.UpdateItem) error {
 	//todo: implement command handling/validation here
 	return nil
 }
 
-func (a *ItemAggregate) handleDeleteItem(command *commands.DeleteItem) error {
+func (a *ItemAggregate) handleDeleteItem(command *command.DeleteItem) error {
 	//todo: implement command handling/validation here
 	return nil
 }
