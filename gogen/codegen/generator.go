@@ -17,7 +17,7 @@ type Generator struct {
 }
 
 type Codegen struct {
-	gogen.CodeGenerator
+	generator.CodeGenerator
 	basePackage string
 }
 
@@ -44,7 +44,7 @@ func (g *Generator) Generate(path string) ([]generator.FileWriter, error) {
 func NewCodeGenerator(basePackage string) *Codegen {
 	_, file, _, _ := runtime.Caller(0)
 	templatePath := filepath.Join(path.Dir(file), "templates", "*.tmpl")
-	cg := gogen.NewCodeGenerator(templatePath)
+	cg := generator.NewCodeGenerator(templatePath)
 	return &Codegen{
 		CodeGenerator: cg,
 		basePackage:   basePackage,
@@ -143,7 +143,7 @@ func (g *Codegen) GenerateEvent(e *cqrs.EventExpr) ([]generator.Section, error) 
 		return nil, errors.New("template not found")
 	}
 
-	imports := gogen.NewImports(path.Join(g.basePackage, "domain/event"))
+	imports := generator.NewImports(path.Join(g.basePackage, "domain/event"))
 	imports.Add("github.com/mbict/go-cqrs")
 	imports.AddFromAttribute(e.Attributes)
 
@@ -164,7 +164,7 @@ func (g *Codegen) GenerateCommand(c *cqrs.CommandExpr) ([]generator.Section, err
 		return nil, errors.New("template not found")
 	}
 
-	imports := gogen.NewImports(path.Join(g.basePackage, "domain/command"))
+	imports := generator.NewImports(path.Join(g.basePackage, "domain/command"))
 	imports.Add(gogen.UUID.Package)
 	imports.AddFromAttribute(c.Params)
 
@@ -185,7 +185,7 @@ func (g *Codegen) GenerateAggregate(a *cqrs.AggregateExpr) ([]generator.Section,
 		return nil, errors.New("template not found")
 	}
 
-	imports := gogen.NewImports(path.Join(g.basePackage, "domain/aggregate"))
+	imports := generator.NewImports(path.Join(g.basePackage, "domain/aggregate"))
 	imports.Add("errors")
 	imports.Add("github.com/mbict/go-cqrs")
 	imports.Add(gogen.UUID.Package)
@@ -209,8 +209,7 @@ func (g *Codegen) GenerateProjection(p *cqrs.ProjectionExpr) ([]generator.Sectio
 		return nil, errors.New("template not found")
 	}
 
-	imports := gogen.NewImports(path.Join(g.basePackage, "domain/projection"))
-	imports.Add("errors")
+	imports := generator.NewImports(path.Join(g.basePackage, "domain/projection"))
 	imports.Add("github.com/mbict/go-cqrs")
 	imports.Add(path.Join(g.basePackage, "domain/event"))
 
@@ -231,7 +230,7 @@ func (g *Codegen) GenerateAggregatesFactory(d *cqrs.DomainExpr) ([]generator.Sec
 		return nil, errors.New("template not found")
 	}
 
-	imports := gogen.NewImports(path.Join(g.basePackage, "domain"))
+	imports := generator.NewImports(path.Join(g.basePackage, "domain"))
 	imports.Add("github.com/mbict/go-cqrs")
 	imports.Add(gogen.UUID.Package)
 	imports.Add(path.Join(g.basePackage, "domain/aggregate"))
@@ -253,7 +252,7 @@ func (g *Codegen) GenerateEventsFactory(d *cqrs.DomainExpr) ([]generator.Section
 		return nil, errors.New("template not found")
 	}
 
-	imports := gogen.NewImports(path.Join(g.basePackage, "domain"))
+	imports := generator.NewImports(path.Join(g.basePackage, "domain"))
 	imports.Add("github.com/mbict/go-cqrs")
 	imports.Add(gogen.UUID.Package)
 	imports.Add(path.Join(g.basePackage, "domain/event"))
@@ -275,7 +274,7 @@ func (g *Codegen) GenerateRepositoryInterfaces(d *cqrs.DomainExpr) ([]generator.
 		return nil, errors.New("template not found")
 	}
 
-	imports := gogen.NewImports(path.Join(g.basePackage, "repository"))
+	imports := generator.NewImports(path.Join(g.basePackage, "repository"))
 	imports.Add(gogen.UUID.Package)
 	imports.Add(path.Join(g.basePackage, "models"))
 	for _, r := range d.AllReadRepositories() {
@@ -300,7 +299,7 @@ func (g *Codegen) GenerateDbRepository(r *cqrs.RepositoryExpr) ([]generator.Sect
 		return nil, errors.New("template not found")
 	}
 
-	imports := gogen.NewImports(path.Join(g.basePackage, "repository/sql"))
+	imports := generator.NewImports(path.Join(g.basePackage, "repository/sql"))
 	imports.Add("database/sql")
 	imports.Add(gogen.UUID.Package)
 	imports.Add("github.com/masterminds/squirrel")

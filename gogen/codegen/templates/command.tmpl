@@ -15,7 +15,7 @@ func (c *{{title .Command.Name}}) AggregateId() uuid.UUID {
 }
 
 func (c *{{title .Command.Name}}) AggregateType() string {
-	return "{{title .Command.RootAggregate.Name}}Aggregate"
+	return "{{title .Command.RootAggregate.Name}}"
 }
 
 func (c *{{title .Command.Name}}) CommandType() string {

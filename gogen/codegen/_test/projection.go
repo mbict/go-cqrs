@@ -1,7 +1,6 @@
 package projection
 
 import (
-	"errors"
 	"github.com/mbict/go-cqrs"
 	"testing/base/domain/event"
 )
