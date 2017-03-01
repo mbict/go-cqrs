@@ -104,15 +104,15 @@ func Event(name string, dsl ...func()) {
 		Name: name,
 		Attributes: &gogen.AttributeExpr{
 			Type: &gogen.Object{
-				&gogen.Field{
-					Name: "Id",
-					Attribute: &gogen.AttributeExpr{
-						Type: gogen.UUID,
-						Validation: &gogen.ValidationRule{
-							Required: true,
-						},
-					},
-				},
+				//&gogen.Field{
+				//	Name: "Id",
+				//	Attribute: &gogen.AttributeExpr{
+				//		Type: gogen.UUID,
+				//		Validation: &gogen.ValidationRule{
+				//			Required: true,
+				//		},
+				//	},
+				//},
 			},
 		},
 		RootAggregate: aggregate,

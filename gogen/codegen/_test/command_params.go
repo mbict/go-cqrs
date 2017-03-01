@@ -16,7 +16,7 @@ func (c *Test) AggregateId() uuid.UUID {
 }
 
 func (c *Test) AggregateType() string {
-	return "ItemAggregate"
+	return "Item"
 }
 
 func (c *Test) CommandType() string {

@@ -10,7 +10,7 @@ type {{title .Event.Name}} struct {
 }
 
 func (e *{{title .Event.Name}}) AggregateType() string {
-	return "{{title .Event.RootAggregate.Name}}Aggregate"
+	return "{{title .Event.RootAggregate.Name}}"
 }
 
 func (e *{{title .Event.Name}}) EventType() string {

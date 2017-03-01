@@ -12,7 +12,7 @@ type Testevent1 struct {
 }
 
 func (e *Testevent1) AggregateType() string {
-	return "ItemAggregate"
+	return "Item"
 }
 
 func (e *Testevent1) EventType() string {
