@@ -34,7 +34,7 @@ func (s *EventStream) AggregateId() uuid.UUID {
 	return s.aggregateId
 }
 
-func (s *EventStream) EventType() string {
+func (s *EventStream) EventName() string {
 	return s.eventType
 }
 

@@ -1,8 +1,8 @@
 package database
 
 import (
-	"github.com/satori/go.uuid"
 	"database/sql/driver"
+	"github.com/satori/go.uuid"
 )
 
 //mysql specific fixuture
@@ -20,4 +20,3 @@ func MysqlUUID(uuid uuid.UUID) UUID {
 func (u UUID) Value() (driver.Value, error) {
 	return u.Bytes(), nil
 }
-

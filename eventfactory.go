@@ -5,12 +5,18 @@ import (
 	"github.com/satori/go.uuid"
 )
 
+type ErrorEventFactoryAlreadyRegistered string
+
+func (e ErrorEventFactoryAlreadyRegistered) Error() string {
+	return fmt.Sprintf("event factory callback/delegate already registered for type: \"%s\"", string(e))
+}
+
 type EventFactoryFunc func(uuid.UUID, int) Event
 
 // EventFactory is the interface that an event store should implement.
 // An event factory returns instances of an event given the event type as a string.
 type EventFactory interface {
-	GetEvent(string, uuid.UUID, int) Event
+	MakeEvent(string, uuid.UUID, int) Event
 }
 
 // CallbackEventFactory uses callback/delegate functions to instantiate event instances
@@ -29,19 +35,19 @@ func NewCallbackEventFactory() *CallbackEventFactory {
 // RegisterCallback registers a delegate that will return an event instance given
 // an event type name as a string.
 func (t *CallbackEventFactory) RegisterCallback(callback EventFactoryFunc) error {
-	typeName := callback(uuid.NewV4(), 0).EventType()
+	typeName := callback(uuid.NewV4(), 0).EventName()
 	if _, ok := t.eventFactories[typeName]; ok {
-		return fmt.Errorf("Factory callback/delegate already registered for type: \"%s\"", typeName)
+		return ErrorEventFactoryAlreadyRegistered(typeName)
 	}
 	t.eventFactories[typeName] = callback
 	return nil
 }
 
-// GetEvent returns an event instance given an event type as a string.
+// MakeEvent returns an event instance given an event type as a string.
 //
 // An appropriate delegate must be registered for the event type.
 // If an appropriate delegate is not registered, the method will return nil.
-func (t *CallbackEventFactory) GetEvent(typeName string, aggregateId uuid.UUID, version int) Event {
+func (t *CallbackEventFactory) MakeEvent(typeName string, aggregateId uuid.UUID, version int) Event {
 	if f, ok := t.eventFactories[typeName]; ok {
 		return f(aggregateId, version)
 	}

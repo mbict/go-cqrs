@@ -8,11 +8,8 @@ type EventStore interface {
 	WriteEvent(string, Event) error
 }
 
-type EventStoreAggregate interface {
-}
-
 type EventStream interface {
-	EventType() string
+	EventName() string
 	AggregateId() uuid.UUID
 	Version() int
 

@@ -1,9 +1,16 @@
 package cqrs
 
-import "github.com/satori/go.uuid"
+import (
+	"github.com/mbict/go-commandbus"
+	"github.com/satori/go.uuid"
+)
 
 type Command interface {
+	commandbus.Command
 	AggregateId() uuid.UUID
-	AggregateType() string
-	CommandType() string
+}
+
+type AggregateCommand interface {
+	Command
+	AggregateName() string
 }

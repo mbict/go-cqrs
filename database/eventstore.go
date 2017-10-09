@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"github.com/mbict/go-cqrs"
 	"github.com/satori/go.uuid"
+	"log"
 	"strings"
 )
 
@@ -117,7 +117,7 @@ func (s *EventStore) WriteEvent(aggregateType string, event cqrs.Event) error {
 		return err
 	}
 
-	result, err := s.insertStmt.Exec(MysqlUUID( event.AggregateID()), aggregateType, event.EventType(), payload, event.Version())
+	result, err := s.insertStmt.Exec(MysqlUUID(event.AggregateID()), aggregateType, event.EventName(), payload, event.Version())
 	if err != nil {
 		return err
 	}

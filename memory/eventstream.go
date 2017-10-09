@@ -28,16 +28,16 @@ func newMemoryEventStream(events []cqrs.Event) cqrs.EventStream {
 	}
 }
 
-func (s *EventStream) EventType() string {
+func (s *EventStream) EventName() string {
 	if s.currentEvent == nil {
 		return ""
 	}
-	return s.currentEvent.EventType()
+	return s.currentEvent.EventName()
 }
 
 func (s *EventStream) AggregateId() uuid.UUID {
 	if s.currentEvent == nil {
-		return nil
+		return uuid.Nil
 	}
 	return s.currentEvent.AggregateID()
 }

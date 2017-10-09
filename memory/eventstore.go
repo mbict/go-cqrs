@@ -16,8 +16,8 @@ func NewMemoryEventStore() cqrs.EventStore {
 	}
 }
 
-func (s *EventStore) LoadStream(aggregateType string, aggregateId uuid.UUID) (cqrs.EventStream, error) {
-	aggregates, ok := s.events[aggregateType]
+func (s *EventStore) LoadStream(aggregateName string, aggregateId uuid.UUID) (cqrs.EventStream, error) {
+	aggregates, ok := s.events[aggregateName]
 	if !ok {
 		return nil, nil
 	}
@@ -29,12 +29,12 @@ func (s *EventStore) LoadStream(aggregateType string, aggregateId uuid.UUID) (cq
 	return newMemoryEventStream(events), nil
 }
 
-func (s *EventStore) WriteEvent(aggregateType string, event cqrs.Event) error {
+func (s *EventStore) WriteEvent(aggregateName string, event cqrs.Event) error {
 
-	if _, ok := s.events[aggregateType]; !ok {
-		s.events[aggregateType] = make(map[string][]cqrs.Event)
+	if _, ok := s.events[aggregateName]; !ok {
+		s.events[aggregateName] = make(map[string][]cqrs.Event)
 	}
-	s.events[aggregateType][event.AggregateID()] = append(s.events[aggregateType][event.AggregateID()], event)
-	fmt.Printf("Saving event %s for aggregate %s (%s)\n", event.EventType(), aggregateType, event.AggregateID())
+	s.events[aggregateName][event.AggregateID()] = append(s.events[aggregateName][event.AggregateID()], event)
+	fmt.Printf("Saving event %s for aggregate %s (%s)\n", event.EventName(), aggregateName, event.AggregateID())
 	return nil
 }

@@ -1,10 +1,13 @@
 package cqrs
 
-import "github.com/satori/go.uuid"
+import (
+	"github.com/mbict/go-eventbus"
+	"github.com/satori/go.uuid"
+)
 
 type Event interface {
+	eventbus.Event
 	AggregateID() uuid.UUID
-	EventType() string
 	Version() int
 }
 

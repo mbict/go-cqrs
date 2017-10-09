@@ -2,12 +2,12 @@ package cqrs
 
 import "github.com/satori/go.uuid"
 
-type AggregateRoot interface {
+type Aggregate interface {
 	// AggregateID returns the id of the aggregate.
 	AggregateID() uuid.UUID
 
-	// AggregateType returns the type name of the aggregate.
-	AggregateType() string
+	// AggregateName returns the type name of the aggregate.
+	AggregateName() string
 
 	// Version returns the version of the aggregate.
 	Version() int
@@ -34,8 +34,8 @@ type AggregateRoot interface {
 	ClearUncommittedEvents()
 }
 
-// AggregateBase is a type that can be embedded in an AggregateRoot
-// implementation to handle common aggragate behaviour
+// AggregateBase is a type that can be embedded in an Aggregate
+// implementation to handle common aggregate behaviour
 //
 // All required methods to implement an aggregate are here, to implement the
 // Aggregate root interface your aggregate will need to implement the Apply
@@ -47,7 +47,7 @@ type AggregateBase struct {
 	events  []Event
 }
 
-// NewAggregateBase contructs a new AggregateBase.
+// NewAggregateBase constructs a new AggregateBase.
 func NewAggregateBase(id uuid.UUID) *AggregateBase {
 	return &AggregateBase{
 		id:      id,
