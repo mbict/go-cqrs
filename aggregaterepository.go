@@ -18,11 +18,10 @@ type AggregateRepository interface {
 type PublishEventFunc func(event Event)
 
 type aggregateRepository struct {
-	eventStore               EventStore
-	aggregateFactory         AggregateFactoryFunc
-	abstractEventFactory     EventFactory
-	publishEventHooks        []PublishEventFunc
-	eventAlwaysPassedByValue bool
+	eventStore           EventStore
+	aggregateFactory     AggregateFactoryFunc
+	abstractEventFactory EventFactory
+	publishEventHooks    []PublishEventFunc
 }
 
 func (r *aggregateRepository) Load(aggregateId uuid.UUID) (Aggregate, error) {
@@ -49,10 +48,7 @@ func (r *aggregateRepository) Load(aggregateId uuid.UUID) (Aggregate, error) {
 
 		// we do not want to pass events by pointer reference but by pass by value,
 		// just to ensure the data of the events are readonly so no other process can change them
-		if r.eventAlwaysPassedByValue {
-			event = reflect.Indirect(reflect.ValueOf(event)).Interface().(Event)
-		}
-
+		event = reflect.Indirect(reflect.ValueOf(event)).Interface().(Event)
 		aggregate.Apply(event)
 		aggregate.IncrementVersion()
 	}
@@ -72,9 +68,7 @@ func (r *aggregateRepository) Save(aggregate Aggregate) error {
 	aggregate.ClearUncommittedEvents()
 
 	for _, event := range events {
-		if r.eventAlwaysPassedByValue {
-			event = reflect.Indirect(reflect.ValueOf(event)).Interface().(Event)
-		}
+		event = reflect.Indirect(reflect.ValueOf(event)).Interface().(Event)
 		aggregate.Apply(event)
 		aggregate.IncrementVersion()
 
@@ -91,24 +85,9 @@ func NewAggregateRepository(
 	abstractEventFactory EventFactory,
 	publishEventHooks ...PublishEventFunc) AggregateRepository {
 	return &aggregateRepository{
-		eventStore:               eventStore,
-		aggregateFactory:         aggregateFactory,
-		abstractEventFactory:     abstractEventFactory,
-		publishEventHooks:        publishEventHooks,
-		eventAlwaysPassedByValue: false,
-	}
-}
-
-func NewAggregateRepositoryReadonlyEvents(
-	eventStore EventStore,
-	aggregateFactory AggregateFactoryFunc,
-	abstractEventFactory EventFactory,
-	publishEventHooks ...PublishEventFunc) AggregateRepository {
-	return &aggregateRepository{
-		eventStore:               eventStore,
-		aggregateFactory:         aggregateFactory,
-		abstractEventFactory:     abstractEventFactory,
-		publishEventHooks:        publishEventHooks,
-		eventAlwaysPassedByValue: true,
+		eventStore:           eventStore,
+		aggregateFactory:     aggregateFactory,
+		abstractEventFactory: abstractEventFactory,
+		publishEventHooks:    publishEventHooks,
 	}
 }

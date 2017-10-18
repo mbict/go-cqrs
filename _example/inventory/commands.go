@@ -63,5 +63,5 @@ func (RemoveItemsFromInventory) CommandName() string {
 }
 
 func (c RemoveItemsFromInventory) AggregateId() uuid.UUID {
-	return c.AggregateId()
+	return c.InventoryItemId
 }

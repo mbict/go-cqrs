@@ -102,29 +102,29 @@ func BenchmarkAggregateRepositoryEvenPassedByValue(b *testing.B) {
 	}
 }
 
-func BenchmarkAggregateRepositoryEvenPassedByReference(b *testing.B) {
-	id := uuid.NewV4()
-	event := &eventA{}
-
-	eventStore := &test_eventStore{}
-	eventFactory := &MockEventFactory{}
-	eventFactory.On("MakeEvent", mock.Anything, mock.Anything, mock.Anything).Return(event, nil)
-	repository := NewAggregateRepositoryReadonlyEvents(eventStore, aggregateAFactory, eventFactory)
-
-	for n := 0; n < b.N; n++ {
-		//eventStream := &MockEventStream{}
-		//eventStream.On("Next").Return(true).Times(1000)
-		//eventStream.On("Next").Return(false)
-		//eventStream.On("EventName").Return("event.a")
-		//eventStream.On("Version").Return(1)
-		//eventStream.On("Scan", mock.Anything).Return(nil)
-		//
-		//eventStore := &MockEventStore{}
-		//eventStore.On("LoadStream", mock.Anything, mock.Anything).Return(eventStream, nil)
-		//eventFactory := &MockEventFactory{}
-		//eventFactory.On("MakeEvent", mock.Anything, mock.Anything, mock.Anything).Return(event, nil)
-		//repository := NewAggregateRepository(eventStore, aggregateAFactory, eventFactory)
-
-		repository.Load(id)
-	}
-}
+//func BenchmarkAggregateRepositoryEvenPassedByReference(b *testing.B) {
+//	id := uuid.NewV4()
+//	event := &eventA{}
+//
+//	eventStore := &test_eventStore{}
+//	eventFactory := &MockEventFactory{}
+//	eventFactory.On("MakeEvent", mock.Anything, mock.Anything, mock.Anything).Return(event, nil)
+//	repository := NewAggregateRepositoryReadonlyEvents(eventStore, aggregateAFactory, eventFactory)
+//
+//	for n := 0; n < b.N; n++ {
+//		//eventStream := &MockEventStream{}
+//		//eventStream.On("Next").Return(true).Times(1000)
+//		//eventStream.On("Next").Return(false)
+//		//eventStream.On("EventName").Return("event.a")
+//		//eventStream.On("Version").Return(1)
+//		//eventStream.On("Scan", mock.Anything).Return(nil)
+//		//
+//		//eventStore := &MockEventStore{}
+//		//eventStore.On("LoadStream", mock.Anything, mock.Anything).Return(eventStream, nil)
+//		//eventFactory := &MockEventFactory{}
+//		//eventFactory.On("MakeEvent", mock.Anything, mock.Anything, mock.Anything).Return(event, nil)
+//		//repository := NewAggregateRepository(eventStore, aggregateAFactory, eventFactory)
+//
+//		repository.Load(id)
+//	}
+//}

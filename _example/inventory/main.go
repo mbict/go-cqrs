@@ -18,6 +18,7 @@ var (
 	itemNameRepository InventoryNameRepository
 )
 
+//bootstrapping
 func init() {
 	commandBus = commandbus.New()
 	itemRepository = NewInventoryItemRepository()
@@ -34,7 +35,7 @@ func init() {
 
 	// initilaze inmemory eventbus and aggregateRepository for the InventoryItemAggregate
 	eventStore := memory.NewMemoryEventStore()
-	aggregateRepository := cqrs.NewAggregateRepositoryReadonlyEvents(eventStore, inventoryItemAggregateFactory, eventFactory, eventbusNotifyHook)
+	aggregateRepository := cqrs.NewAggregateRepository(eventStore, inventoryItemAggregateFactory, eventFactory, eventbusNotifyHook)
 
 	// aggregate command handler is the command handler who is responsible for
 	// - creating the aggregate
@@ -69,6 +70,7 @@ func init() {
 	eventBus.Subscribe(uniqueInventoryNamesProjector, InventoryItemCreated{}, InventoryItemRenamed{}, InventoryItemDeactivated{})
 }
 
+//rough example
 func main() {
 	// the unique id of the first inventoryItem
 	idFirstItem := uuid.NewV4()
@@ -142,7 +144,7 @@ func main() {
 	}
 	fmt.Printf("[SUCCESS] we got a error that the command is not processed: `%s` and that is just what we want\n", err)
 
-	//and now add an remove some stock
+	//and now add an remove some item to the inventory
 	commandBus.Handle(nil, CheckInItemsToInventory{
 		InventoryItemId: idFirstItem,
 		Count:           657,
@@ -152,6 +154,10 @@ func main() {
 		Count:           123,
 	})
 
-	//and the final result is
-
+	//and the final result is 500 + 657 - 123 = 1034
+	item = itemRepository.FindById(idFirstItem)
+	if item.Count != 1034 {
+		panic("we expected the outcome to be 1034 but its something different")
+	}
+	fmt.Printf("[SUCCESS] the inventory is changed in a good way, no thiefs today:\n%#v\n", item)
 }
