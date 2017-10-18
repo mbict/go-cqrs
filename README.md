@@ -1,4 +1,9 @@
 # go-cqrs
+[![Build Status](https://travis-ci.org/mbict/go-cqrs.png?branch=master)](https://travis-ci.org/mbict/go-cqrs)
+[![GoDoc](https://godoc.org/github.com/mbict/go-cqrs?status.png)](http://godoc.org/github.com/mbict/go-cqrs)
+[![GoCover](http://gocover.io/_badge/github.com/mbict/go-cqrs)](http://gocover.io/github.com/mbict/go-cqrs)
+[![GoReportCard](http://goreportcard.com/badge/mbict/go-cqrs)](http://goreportcard.com/report/mbict/go-cqrs)
+
 CQRS/es implementation in go
 
 ### Aggregates
