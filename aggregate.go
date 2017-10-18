@@ -12,7 +12,7 @@ type Aggregate interface {
 	// Version returns the version of the aggregate.
 	Version() int
 
-	// CurrentVersion returns the new version of the aggregate including the uncomitted events.
+	// CurrentVersion returns the new version of the aggregate including the uncommitted events.
 	CurrentVersion() int
 
 	// IncrementVersion increments the aggregate version.

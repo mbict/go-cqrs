@@ -34,7 +34,7 @@ func NewCommonDomainRepository(eventStore EventStore, eventFactory EventFactory,
 	}
 }
 
-//SetEventBus will set wich eventbus for publishing new events
+//SetEventBus will set which eventbus for publishing new events
 //if set to nil no events will be published during a save action
 func (r *DomainAggregateRepository) SetEventBus(eventBus eventbus.EventBus) {
 	r.eventBus = eventBus

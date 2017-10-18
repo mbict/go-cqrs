@@ -20,7 +20,7 @@ func TestAggregateCommandHandler(t *testing.T) {
 	err := AggregateCommandHandler(repo).Handle(nil, command)
 
 	if err != nil {
-		t.Fatal("did not expecte a error but got `%v`", err)
+		t.Fatalf("did not expecte a error but got `%v`", err)
 	}
 
 	aggregate.AssertNumberOfCalls(t, "HandleCommand", 1)
