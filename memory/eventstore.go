@@ -1,13 +1,14 @@
 package memory
 
 import (
-	"fmt"
 	"github.com/mbict/go-cqrs"
 	"github.com/satori/go.uuid"
+	"sync"
 )
 
 type EventStore struct {
-	events map[string]map[string][]cqrs.Event
+	events  map[string]map[string][]cqrs.Event
+	rwMutex sync.RWMutex
 }
 
 func NewMemoryEventStore() cqrs.EventStore {
@@ -17,24 +18,31 @@ func NewMemoryEventStore() cqrs.EventStore {
 }
 
 func (s *EventStore) LoadStream(aggregateName string, aggregateId uuid.UUID) (cqrs.EventStream, error) {
+	s.rwMutex.RLock()
+	defer s.rwMutex.RUnlock()
+
 	aggregates, ok := s.events[aggregateName]
 	if !ok {
 		return nil, nil
 	}
 
-	events, ok := aggregates[aggregateId]
+	events, ok := aggregates[aggregateId.String()]
 	if !ok {
 		return nil, nil
 	}
 	return newMemoryEventStream(events), nil
 }
 
-func (s *EventStore) WriteEvent(aggregateName string, event cqrs.Event) error {
+func (s *EventStore) WriteEvent(aggregateName string, events ...cqrs.Event) error {
+	s.rwMutex.Lock()
+	defer s.rwMutex.Unlock()
 
-	if _, ok := s.events[aggregateName]; !ok {
-		s.events[aggregateName] = make(map[string][]cqrs.Event)
+	for _, event := range events {
+		if _, ok := s.events[aggregateName]; !ok {
+			s.events[aggregateName] = make(map[string][]cqrs.Event)
+		}
+		id := event.AggregateId().String()
+		s.events[aggregateName][id] = append(s.events[aggregateName][id], event)
 	}
-	s.events[aggregateName][event.AggregateID()] = append(s.events[aggregateName][event.AggregateID()], event)
-	fmt.Printf("Saving event %s for aggregate %s (%s)\n", event.EventName(), aggregateName, event.AggregateID())
 	return nil
 }

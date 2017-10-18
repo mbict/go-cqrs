@@ -22,8 +22,8 @@ func TestCallbackAggregateFactoryMake(t *testing.T) {
 		t.Errorf("expected an aggregate with name `%v` but got `%v`", "aggregateA", aggregate.AggregateName())
 	}
 
-	if !uuid.Equal(aggregate.AggregateID(), id) {
-		t.Errorf("expected an aggregate with aggregate id `%v` but got `%v`", id, aggregate.AggregateID())
+	if !uuid.Equal(aggregate.AggregateId(), id) {
+		t.Errorf("expected an aggregate with aggregate id `%v` but got `%v`", id, aggregate.AggregateId())
 	}
 
 	if aggregate.Version() != 0 {

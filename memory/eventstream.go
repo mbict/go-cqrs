@@ -39,7 +39,7 @@ func (s *EventStream) AggregateId() uuid.UUID {
 	if s.currentEvent == nil {
 		return uuid.Nil
 	}
-	return s.currentEvent.AggregateID()
+	return s.currentEvent.AggregateId()
 }
 
 func (s *EventStream) Version() int {

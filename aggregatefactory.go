@@ -13,7 +13,7 @@ func (e ErrorAggregateFactoryAlreadyRegistered) Error() string {
 
 type AggregateFactoryFunc func(uuid.UUID) Aggregate
 
-// AggregateFactory returns aggregate instances of a specified type with the AggregateID set to the uuid provided.
+// AggregateFactory returns aggregate instances of a specified type with the AggregateId set to the uuid provided.
 type AggregateFactory interface {
 	//MakeAggregate will return a clean Aggregate based on the type provided
 	MakeAggregate(string, uuid.UUID) Aggregate

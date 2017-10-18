@@ -3,14 +3,22 @@ package cqrs
 import (
 	"fmt"
 	"github.com/satori/go.uuid"
+	"reflect"
 )
 
 type ErrorEventFactoryAlreadyRegistered string
 
 func (e ErrorEventFactoryAlreadyRegistered) Error() string {
-	return fmt.Sprintf("event factory callback/delegate already registered for type: \"%s\"", string(e))
+	return fmt.Sprintf("event factory callback/delegate already registered for type: `%s`", string(e))
 }
 
+type ErrorEventFactoryNotReturningPointer string
+
+func (e ErrorEventFactoryNotReturningPointer) Error() string {
+	return fmt.Sprintf("event factory callback/delegate does not return a pointer reference for type: `%s`", string(e))
+}
+
+// EventFactoryFunc should create an Event and return the pointer to the instance.
 type EventFactoryFunc func(uuid.UUID, int) Event
 
 // EventFactory is the interface that an event store should implement.
@@ -35,7 +43,14 @@ func NewCallbackEventFactory() *CallbackEventFactory {
 // RegisterCallback registers a delegate that will return an event instance given
 // an event type name as a string.
 func (t *CallbackEventFactory) RegisterCallback(callback EventFactoryFunc) error {
-	typeName := callback(uuid.NewV4(), 0).EventName()
+	e := callback(uuid.NewV4(), 0)
+
+	rv := reflect.ValueOf(e)
+	if rv.Kind() != reflect.Ptr || rv.IsNil() {
+		return ErrorEventFactoryNotReturningPointer(rv.Type().Name())
+	}
+
+	typeName := e.EventName()
 	if _, ok := t.eventFactories[typeName]; ok {
 		return ErrorEventFactoryAlreadyRegistered(typeName)
 	}

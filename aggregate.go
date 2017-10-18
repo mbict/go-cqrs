@@ -3,8 +3,8 @@ package cqrs
 import "github.com/satori/go.uuid"
 
 type Aggregate interface {
-	// AggregateID returns the id of the aggregate.
-	AggregateID() uuid.UUID
+	// AggregateId returns the id of the aggregate.
+	AggregateId() uuid.UUID
 
 	// AggregateName returns the type name of the aggregate.
 	AggregateName() string
@@ -56,7 +56,7 @@ func NewAggregateBase(id uuid.UUID) *AggregateBase {
 	}
 }
 
-func (a *AggregateBase) AggregateID() uuid.UUID {
+func (a *AggregateBase) AggregateId() uuid.UUID {
 	return a.id
 }
 

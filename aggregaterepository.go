@@ -1,14 +1,9 @@
 package cqrs
 
 import (
-	"errors"
 	"fmt"
-	"github.com/mbict/go-eventbus"
 	"github.com/satori/go.uuid"
-)
-
-var (
-	ErrRepositoryNotFound = errors.New("repository not found")
+	"reflect"
 )
 
 // AggregateRepository is the interface that a specific aggregate repositories should implement.
@@ -20,55 +15,25 @@ type AggregateRepository interface {
 	Save(aggregate Aggregate) error
 }
 
-// AggregateRepositoryManager is the managing interface who provide aggregate repository access
-type AggregateRepositoryManager interface {
-	//RepositoryFor will return the repository for the specific named aggregate
-	RepositoryFor(aggregateName string) AggregateRepository
+type PublishEventFunc func(event Event)
+
+type aggregateRepository struct {
+	eventStore               EventStore
+	aggregateFactory         AggregateFactoryFunc
+	abstractEventFactory     EventFactory
+	publishEventHooks        []PublishEventFunc
+	eventAlwaysPassedByValue bool
 }
 
-type DomainAggregateRepository struct {
-	eventStore       EventStore
-	eventFactory     EventFactory
-	aggregateFactory AggregateFactory
-	eventBus         eventbus.EventBus
-}
-
-//NewRepository instantiates a new repository resolver who accepts a stream resolver
-func NewCommonDomainRepository(eventStore EventStore, eventFactory EventFactory, aggregateFactory AggregateFactory) *DomainAggregateRepository {
-	return &DomainAggregateRepository{
-		eventBus:         nil,
-		eventStore:       eventStore,
-		eventFactory:     eventFactory,
-		aggregateFactory: aggregateFactory,
-	}
-}
-
-//SetEventBus will set wich eventbus for publishing new events
-//if set to nil no events will be published during a save action
-func (r *DomainAggregateRepository) SetEventBus(eventBus eventbus.EventBus) {
-	r.eventBus = eventBus
-}
-
-func (r *DomainAggregateRepository) RepositoryFor(aggregateName string) AggregateRepository {
-	panic("implement me")
-}
-
-//Loads an aggregate of the given type and ID
-func (r *DomainAggregateRepository) Load(aggregateType string, aggregateId uuid.UUID) (Aggregate, error) {
-
-	aggregate := r.aggregateFactory.MakeAggregate(aggregateType, aggregateId)
-	if aggregate == nil {
-		return nil, fmt.Errorf("the repository has no aggregate factory registered for aggregate type: %s", aggregateType)
-	}
-
-	stream, err := r.eventStore.LoadStream(aggregateType, aggregateId)
+func (r *aggregateRepository) Load(aggregateId uuid.UUID) (Aggregate, error) {
+	aggregate := r.aggregateFactory(aggregateId)
+	stream, err := r.eventStore.LoadStream(aggregate.AggregateName(), aggregateId)
 	if err != nil {
-		return nil, fmt.Errorf("cannot load events from stream reader for aggregate type: %s, error: %s", aggregateType, err)
+		return nil, fmt.Errorf("cannot load events from stream reader, error: %s", err)
 	}
 
 	for stream != nil && stream.Next() {
-
-		event := r.eventFactory.MakeEvent(stream.EventName(), aggregateId, stream.Version())
+		event := r.abstractEventFactory.MakeEvent(stream.EventName(), aggregateId, stream.Version())
 		if event == nil {
 			return nil, fmt.Errorf("the repository has no event factory registered for event type: %s", stream.EventName())
 		}
@@ -79,37 +44,71 @@ func (r *DomainAggregateRepository) Load(aggregateType string, aggregateId uuid.
 
 		err = stream.Scan(event)
 		if err != nil {
-			return nil, fmt.Errorf("the repository cannot populate event data from stream for event type: %s", stream.EventName())
+			return nil, fmt.Errorf("the repository cannot populate event data from stream for event type: %s, with error `%s`", stream.EventName(), err)
 		}
 
-		//aggregate.Apply(event)
-		//aggregate.IncrementVersion()
-	}
+		// we do not want to pass events by pointer reference but by pass by value,
+		// just to ensure the data of the events are readonly so no other process can change them
+		if r.eventAlwaysPassedByValue {
+			event = reflect.Indirect(reflect.ValueOf(event)).Interface().(Event)
+		}
 
-	//snapshotversion = 0
-	//if snapshotversion-aggrevgate.Version() > 50 {
-	//	//create snapshot
-	//}
+		aggregate.Apply(event)
+		aggregate.IncrementVersion()
+	}
 
 	return aggregate, nil
 }
 
-//Save will save all the events to the event store.
-func (r *DomainAggregateRepository) Save(aggregate Aggregate) error {
-
-	for _, event := range aggregate.GetUncommittedEvents() {
-		if err := r.eventStore.WriteEvent(aggregate.AggregateName(), event); err != nil {
-			return err
-		}
-
-		if r.eventBus != nil {
-			r.eventBus.Publish(event)
-		}
-
-		aggregate.Apply(event)
+func (r *aggregateRepository) Save(aggregate Aggregate) error {
+	events := aggregate.GetUncommittedEvents()
+	if len(events) == 0 {
+		return nil
 	}
 
+	if err := r.eventStore.WriteEvent(aggregate.AggregateName(), events...); err != nil {
+		return err
+	}
 	aggregate.ClearUncommittedEvents()
 
+	for _, event := range events {
+		if r.eventAlwaysPassedByValue {
+			event = reflect.Indirect(reflect.ValueOf(event)).Interface().(Event)
+		}
+		aggregate.Apply(event)
+		aggregate.IncrementVersion()
+
+		for _, f := range r.publishEventHooks {
+			f(event)
+		}
+	}
 	return nil
+}
+
+func NewAggregateRepository(
+	eventStore EventStore,
+	aggregateFactory AggregateFactoryFunc,
+	abstractEventFactory EventFactory,
+	publishEventHooks ...PublishEventFunc) AggregateRepository {
+	return &aggregateRepository{
+		eventStore:               eventStore,
+		aggregateFactory:         aggregateFactory,
+		abstractEventFactory:     abstractEventFactory,
+		publishEventHooks:        publishEventHooks,
+		eventAlwaysPassedByValue: false,
+	}
+}
+
+func NewAggregateRepositoryReadonlyEvents(
+	eventStore EventStore,
+	aggregateFactory AggregateFactoryFunc,
+	abstractEventFactory EventFactory,
+	publishEventHooks ...PublishEventFunc) AggregateRepository {
+	return &aggregateRepository{
+		eventStore:               eventStore,
+		aggregateFactory:         aggregateFactory,
+		abstractEventFactory:     abstractEventFactory,
+		publishEventHooks:        publishEventHooks,
+		eventAlwaysPassedByValue: true,
+	}
 }

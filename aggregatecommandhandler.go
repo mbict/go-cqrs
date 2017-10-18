@@ -9,13 +9,13 @@ import (
 type ErrorAggregateNotFound string
 
 func (e ErrorAggregateNotFound) Error() string {
-	return fmt.Sprintf("aggregate not found for id: \"%s\"", e)
+	return fmt.Sprintf("aggregate not found for id: \"%s\"", string(e))
 }
 
 type ErrorNotAnAggregateCommand string
 
 func (e ErrorNotAnAggregateCommand) Error() string {
-	return fmt.Sprintf("cannot convert to aggregate command for command: \"%s\"", e)
+	return fmt.Sprintf("cannot convert to aggregate command for command: \"%s\"", string(e))
 }
 
 // AggregateCommandHandler is a command handler middleware who loads the aggregate

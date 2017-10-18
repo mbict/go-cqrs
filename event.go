@@ -7,7 +7,7 @@ import (
 
 type Event interface {
 	eventbus.Event
-	AggregateID() uuid.UUID
+	AggregateId() uuid.UUID
 	Version() int
 }
 
@@ -23,10 +23,17 @@ func NewEventBase(id uuid.UUID, version int) *EventBase {
 	}
 }
 
-func (e *EventBase) AggregateID() uuid.UUID {
+func NewEventBaseFromAggregate(aggregate Aggregate) *EventBase {
+	return &EventBase{
+		id:      aggregate.AggregateId(),
+		version: aggregate.CurrentVersion() + 1,
+	}
+}
+
+func (e EventBase) AggregateId() uuid.UUID {
 	return e.id
 }
 
-func (e *EventBase) Version() int {
+func (e EventBase) Version() int {
 	return e.version
 }

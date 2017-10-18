@@ -22,8 +22,8 @@ func TestCallbackEventFactoryMake(t *testing.T) {
 		t.Errorf("expected an event with name `%v` but got `%v`", "event.a", event.EventName())
 	}
 
-	if !uuid.Equal(event.AggregateID(), id) {
-		t.Errorf("expected an event with aggregate id `%v` but got `%v`", id, event.AggregateID())
+	if !uuid.Equal(event.AggregateId(), id) {
+		t.Errorf("expected an event with aggregate id `%v` but got `%v`", id, event.AggregateId())
 	}
 
 	if event.Version() != 1 {
@@ -57,14 +57,41 @@ func TestCallbackEventFactoryDuplicateRegister(t *testing.T) {
 	}
 
 	if _, ok := err.(ErrorEventFactoryAlreadyRegistered); !ok {
-		t.Error("expected a error but got none")
+		t.Errorf("expected an error of type `%T` but got `%T`", ErrorEventFactoryAlreadyRegistered(""), err)
+	}
+}
+
+func TestCallbackEventFactoryNonPointerEventRegister(t *testing.T) {
+	f := NewCallbackEventFactory()
+
+	badEventFactory := func(id uuid.UUID, version int) Event {
+		return eventB{}
+	}
+
+	err := f.RegisterCallback(badEventFactory)
+	if err == nil {
+		t.Error("expected an error but got none")
+	}
+
+	if _, ok := err.(ErrorEventFactoryNotReturningPointer); !ok {
+		t.Errorf("expected an error of type `%T` but got `%T`", ErrorEventFactoryNotReturningPointer(""), err)
 	}
 }
 
 func TestErrorEventFactoryAlreadyRegisteredToString(t *testing.T) {
 	e := ErrorEventFactoryAlreadyRegistered("test")
 
-	if e.Error() == "" {
-		t.Errorf("expected a error message `%s` but got message : `%s`", "", e.Error())
+	expected := "event factory callback/delegate already registered for type: `test`"
+	if e.Error() != expected {
+		t.Errorf("expected a error message `%s` but got message : `%s`", expected, e.Error())
+	}
+}
+
+func TestErrorEventFactoryNotReturningPointerToString(t *testing.T) {
+	e := ErrorEventFactoryNotReturningPointer("test")
+
+	expected := "event factory callback/delegate does not return a pointer reference for type: `test`"
+	if e.Error() != expected {
+		t.Errorf("expected a error message `%s` but got message : `%s`", expected, e.Error())
 	}
 }
