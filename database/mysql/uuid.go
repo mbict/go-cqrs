@@ -5,7 +5,7 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-//mysql specific fixuture
+//mysql optimized ID key, we store it as a bytes VARBINARY(16) instead of string
 type UUID struct {
 	uuid.UUID
 }

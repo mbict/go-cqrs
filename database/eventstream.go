@@ -24,7 +24,7 @@ type EventStream struct {
 	timestamp   time.Time
 }
 
-func newDatabaseEventStream(rows *sql.Rows) cqrs.EventStream {
+func NewDatabaseEventStream(rows *sql.Rows) cqrs.EventStream {
 	return &EventStream{
 		rows: rows,
 	}
