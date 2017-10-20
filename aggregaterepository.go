@@ -79,6 +79,10 @@ func (r *aggregateRepository) Save(aggregate Aggregate) error {
 	return nil
 }
 
+// NewAggregateRepository is the constructor of the repository
+//
+// publishEventHooks get called when a new event is successfully persisted to the eventstore.
+// This is very useful to wire it to an eventbus for publishing the event to other listeners (projections)
 func NewAggregateRepository(
 	eventStore EventStore,
 	aggregateFactory AggregateFactoryFunc,

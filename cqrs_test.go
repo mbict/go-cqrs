@@ -33,7 +33,7 @@ func (c *commandA) AggregateId() uuid.UUID {
 }
 
 type eventA struct {
-	*EventBase
+	EventBase
 }
 
 func (eventA) EventName() string {
@@ -41,7 +41,7 @@ func (eventA) EventName() string {
 }
 
 type eventB struct {
-	*EventBase
+	EventBase
 }
 
 func (eventB) EventName() string {

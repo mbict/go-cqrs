@@ -5,7 +5,7 @@ import (
 )
 
 type InventoryItemDeactivated struct {
-	*cqrs.EventBase
+	cqrs.EventBase
 }
 
 func (InventoryItemDeactivated) EventName() string {
@@ -13,7 +13,7 @@ func (InventoryItemDeactivated) EventName() string {
 }
 
 type InventoryItemCreated struct {
-	*cqrs.EventBase
+	cqrs.EventBase
 	Name string `json:"name"`
 }
 
@@ -22,7 +22,7 @@ func (InventoryItemCreated) EventName() string {
 }
 
 type InventoryItemRenamed struct {
-	*cqrs.EventBase
+	cqrs.EventBase
 	NewName string `json:"new_name"`
 }
 
@@ -31,7 +31,7 @@ func (InventoryItemRenamed) EventName() string {
 }
 
 type ItemsCheckedInToInventory struct {
-	*cqrs.EventBase
+	cqrs.EventBase
 	Count int `json:"count"`
 }
 
@@ -40,7 +40,7 @@ func (ItemsCheckedInToInventory) EventName() string {
 }
 
 type ItemsRemovedFromInventory struct {
-	*cqrs.EventBase
+	cqrs.EventBase
 	Count int `json:"count"`
 }
 
