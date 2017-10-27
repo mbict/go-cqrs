@@ -35,7 +35,17 @@ func init() {
 
 	// initilaze inmemory eventbus and aggregateRepository for the InventoryItemAggregate
 	eventStore := memory.NewMemoryEventStore()
-	aggregateRepository := cqrs.NewAggregateRepository(eventStore, inventoryItemAggregateFactory, eventFactory, eventbusNotifyHook)
+	//aggregateRepository := cqrs.NewAggregateRepository(eventStore, cqrs.DefaultAggregateBuilder(inventoryItemAggregateFactory), eventFactory, eventbusNotifyHook)
+
+	//snapshot version of the repository
+	snapshotStore := memory.NewSnapshotStore()
+	aggregateRepository := cqrs.NewSnapshotAggregateRepository(
+		eventStore,
+		snapshotStore,
+		2, //create a snapshot everytime we differ 2 events or more
+		cqrs.SnapshotAggregateBuilder(inventoryItemAggregateFactory, snapshotStore),
+		eventFactory,
+		eventbusNotifyHook)
 
 	// aggregate command handler is the command handler who is responsible for
 	// - creating the aggregate
@@ -160,4 +170,5 @@ func main() {
 		panic("we expected the outcome to be 1034 but its something different")
 	}
 	fmt.Printf("[SUCCESS] the inventory is changed in a good way, no thiefs today:\n%#v\n", item)
+
 }

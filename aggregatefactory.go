@@ -2,7 +2,6 @@ package cqrs
 
 import (
 	"fmt"
-	"github.com/satori/go.uuid"
 )
 
 type ErrorAggregateFactoryAlreadyRegistered string
@@ -11,12 +10,12 @@ func (e ErrorAggregateFactoryAlreadyRegistered) Error() string {
 	return fmt.Sprintf("aggregate factory callback/delegate already registered for type: \"%s\"", string(e))
 }
 
-type AggregateFactoryFunc func(uuid.UUID) Aggregate
+type AggregateFactoryFunc func(AggregateContext) Aggregate
 
 // AggregateFactory returns aggregate instances of a specified type with the AggregateId set to the uuid provided.
 type AggregateFactory interface {
 	//MakeAggregate will return a clean Aggregate based on the type provided
-	MakeAggregate(string, uuid.UUID) Aggregate
+	MakeAggregate(string, AggregateContext) Aggregate
 }
 
 // CallbackAggregateFactory is an implementation of the AggregateFactory interface
@@ -34,7 +33,7 @@ func NewCallbackAggregateFactory() *CallbackAggregateFactory {
 
 // RegisterCallback is used to register a new function for instantiation of an aggregate instance.
 func (t *CallbackAggregateFactory) RegisterCallback(callback AggregateFactoryFunc) error {
-	typeName := callback(uuid.NewV4()).AggregateName()
+	typeName := callback(nil).AggregateName()
 	if _, ok := t.delegates[typeName]; ok {
 		return ErrorAggregateFactoryAlreadyRegistered(typeName)
 	}
@@ -43,9 +42,9 @@ func (t *CallbackAggregateFactory) RegisterCallback(callback AggregateFactoryFun
 }
 
 // MakeAggregate calls the callback for the specified type and returns the result.
-func (t *CallbackAggregateFactory) MakeAggregate(typeName string, id uuid.UUID) Aggregate {
+func (t *CallbackAggregateFactory) MakeAggregate(typeName string, ctx AggregateContext) Aggregate {
 	if f, ok := t.delegates[typeName]; ok {
-		return f(id)
+		return f(ctx)
 	}
 	return nil
 }

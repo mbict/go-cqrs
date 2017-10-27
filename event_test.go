@@ -7,9 +7,9 @@ import (
 
 func TestNewEventBaseFromAggregate(t *testing.T) {
 	id := uuid.NewV4()
-	agg := &MockAggregate{}
+	agg := &MockAggregateContext{}
 	agg.On("AggregateId").Return(id)
-	agg.On("CurrentVersion").Return(10)
+	agg.On("Version").Return(10)
 
 	eventBase := NewEventBaseFromAggregate(agg)
 

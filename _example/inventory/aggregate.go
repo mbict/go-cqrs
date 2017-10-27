@@ -10,11 +10,13 @@ var ErrNotEnoughInventoryItems = errors.New("not enough inventory items availabl
 var ErrDeactivate = errors.New("cannot deactivated")
 
 type InventoryItemAggregate struct {
-	*cqrs.AggregateBase
+	// the context is used to store the generated events version and aggregate version
+	// incase of a snapshot repository is used this field needs to be unexported or ignored by json
+	cqrs.AggregateContext `json:"-"`
 
-	//aggregate state
-	count     int
-	activated bool
+	//aggregate state, serializable for snapshots
+	Count     int
+	Activated bool
 }
 
 func (InventoryItemAggregate) AggregateName() string {
@@ -22,6 +24,11 @@ func (InventoryItemAggregate) AggregateName() string {
 }
 
 func (a *InventoryItemAggregate) HandleCommand(command cqrs.Command) error {
+	//simple pre check if first command always must be from specific type
+	if _, ok := command.(CreateInventoryItem); !ok && a.Version() == 0 {
+		return cqrs.ErrorAggregateNotFound(a.AggregateId().String())
+	}
+
 	switch c := command.(type) {
 	case CreateInventoryItem:
 		return a.create(c.Name)
@@ -40,16 +47,16 @@ func (a *InventoryItemAggregate) HandleCommand(command cqrs.Command) error {
 func (a *InventoryItemAggregate) Apply(event cqrs.Event) error {
 	switch e := event.(type) {
 	case InventoryItemCreated:
-		a.activated = true
+		a.Activated = true
 	case InventoryItemRenamed:
 		//we do nothing here intentionally
 		//there is no need to change the state of the aggregate for this event
 	case InventoryItemDeactivated:
-		a.activated = false
+		a.Activated = false
 	case ItemsCheckedInToInventory:
-		a.count += e.Count //add items to the state count
+		a.Count += e.Count //add items to the state Count
 	case ItemsRemovedFromInventory:
-		a.count -= e.Count //remove items from the state count
+		a.Count -= e.Count //remove items from the state Count
 	default:
 		//unkown event, we return an error (if anyone cares)
 		return cqrs.ErrUnknownEvent
@@ -84,7 +91,7 @@ func (a *InventoryItemAggregate) rename(name string) error {
 
 func (a *InventoryItemAggregate) deactivate() error {
 	//pre check
-	if a.activated == false {
+	if a.Activated == false {
 		return ErrDeactivate
 	}
 
@@ -107,7 +114,7 @@ func (a *InventoryItemAggregate) checkinItems(count int) error {
 }
 
 func (a *InventoryItemAggregate) removeItems(count int) error {
-	if count > a.count {
+	if count > a.Count {
 		return ErrNotEnoughInventoryItems
 	}
 

@@ -59,3 +59,5 @@ Later on the newly created event will be passed by value to the aggregates and o
 - More real world examples.
 - See how it performs in my projects.
 - Documentation documentation documentation.
+- Write test for Snapshot repository
+- Create Mysql and Postgres variant for SnapshotStore

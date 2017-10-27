@@ -6,9 +6,9 @@ import (
 )
 
 //factory for the aggregate
-func inventoryItemAggregateFactory(id uuid.UUID) cqrs.Aggregate {
+func inventoryItemAggregateFactory(context cqrs.AggregateContext) cqrs.Aggregate {
 	return &InventoryItemAggregate{
-		AggregateBase: cqrs.NewAggregateBase(id),
+		AggregateContext: context,
 	}
 }
 

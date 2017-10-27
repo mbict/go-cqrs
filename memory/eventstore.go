@@ -17,7 +17,7 @@ func NewMemoryEventStore() cqrs.EventStore {
 	}
 }
 
-func (s *EventStore) LoadStream(aggregateName string, aggregateId uuid.UUID) (cqrs.EventStream, error) {
+func (s *EventStore) LoadStream(aggregateName string, aggregateId uuid.UUID, version int) (cqrs.EventStream, error) {
 	s.rwMutex.RLock()
 	defer s.rwMutex.RUnlock()
 
@@ -30,7 +30,8 @@ func (s *EventStore) LoadStream(aggregateName string, aggregateId uuid.UUID) (cq
 	if !ok {
 		return nil, nil
 	}
-	return newMemoryEventStream(events), nil
+
+	return newMemoryEventStream(events[version:]), nil
 }
 
 func (s *EventStore) WriteEvent(aggregateName string, events ...cqrs.Event) error {

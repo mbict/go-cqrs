@@ -10,15 +10,15 @@ type MockAggregateRepository struct {
 }
 
 // Load provides a mock function with given fields: aggregateId
-func (_m *MockAggregateRepository) Load(aggregateId uuid.UUID) (Aggregate, error) {
+func (_m *MockAggregateRepository) Load(aggregateId uuid.UUID) (AggregateComposition, error) {
 	ret := _m.Called(aggregateId)
 
-	var r0 Aggregate
-	if rf, ok := ret.Get(0).(func(uuid.UUID) Aggregate); ok {
+	var r0 AggregateComposition
+	if rf, ok := ret.Get(0).(func(uuid.UUID) AggregateComposition); ok {
 		r0 = rf(aggregateId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(Aggregate)
+			r0 = ret.Get(0).(AggregateComposition)
 		}
 	}
 
@@ -33,11 +33,11 @@ func (_m *MockAggregateRepository) Load(aggregateId uuid.UUID) (Aggregate, error
 }
 
 // Save provides a mock function with given fields: aggregate
-func (_m *MockAggregateRepository) Save(aggregate Aggregate) error {
+func (_m *MockAggregateRepository) Save(aggregate AggregateComposition) error {
 	ret := _m.Called(aggregate)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(Aggregate) error); ok {
+	if rf, ok := ret.Get(0).(func(AggregateComposition) error); ok {
 		r0 = rf(aggregate)
 	} else {
 		r0 = ret.Error(0)
