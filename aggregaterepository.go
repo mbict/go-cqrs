@@ -6,27 +6,52 @@ import (
 	"reflect"
 )
 
+// PublishEventFunc is a callback function that is getting called once the eventstore has successfully stored the
+// new events gereated by the aggregate
+type PublishEventFunc func(event Event)
+
+// AggregateBuilder is the builder function to create new aggregate compositions.
+// This could be used to introduce new strategies how to build a aggregate like the snapshot implementation
+type AggregateBuilder func(aggregateId uuid.UUID) (AggregateComposition, error)
+
 // AggregateRepository is the interface that a specific aggregate repositories should implement.
 type AggregateRepository interface {
 	//Loads an aggregate of the given type and ID
-	Load(aggregateId uuid.UUID) (Aggregate, error)
+	Load(aggregateId uuid.UUID) (AggregateComposition, error)
 
 	//Saves the aggregate.
-	Save(aggregate Aggregate) error
+	Save(aggregate AggregateComposition) error
 }
-
-type PublishEventFunc func(event Event)
 
 type aggregateRepository struct {
 	eventStore           EventStore
-	aggregateFactory     AggregateFactoryFunc
+	aggregateBuilder     AggregateBuilder
 	abstractEventFactory EventFactory
 	publishEventHooks    []PublishEventFunc
 }
 
-func (r *aggregateRepository) Load(aggregateId uuid.UUID) (Aggregate, error) {
-	aggregate := r.aggregateFactory(aggregateId)
-	stream, err := r.eventStore.LoadStream(aggregate.AggregateName(), aggregateId)
+func DefaultAggregateBuilder(factory AggregateFactoryFunc) AggregateBuilder {
+	return func(aggregateId uuid.UUID) (AggregateComposition, error) {
+		context := NewAggregateContext(aggregateId, 0)
+		aggregateComposition := &aggregateContextComposition{
+			AggregateContext: context,
+		}
+		aggregate := factory(aggregateComposition)
+		if aggregate == nil {
+			return nil, nil
+		}
+
+		aggregateComposition.Aggregate = aggregate
+		return aggregateComposition, nil
+	}
+}
+
+func (r *aggregateRepository) Load(aggregateId uuid.UUID) (AggregateComposition, error) {
+	aggregate, err := r.aggregateBuilder(aggregateId)
+	if err != nil {
+		return nil, err
+	}
+	stream, err := r.eventStore.LoadStream(aggregate.AggregateName(), aggregateId, aggregate.Version())
 	if err != nil {
 		return nil, fmt.Errorf("cannot load events from stream reader, error: %s", err)
 	}
@@ -50,14 +75,13 @@ func (r *aggregateRepository) Load(aggregateId uuid.UUID) (Aggregate, error) {
 		// just to ensure the data of the events are readonly so no other process can change them
 		event = reflect.Indirect(reflect.ValueOf(event)).Interface().(Event)
 		aggregate.Apply(event)
-		aggregate.IncrementVersion()
+		aggregate.incrementVersion()
 	}
-
 	return aggregate, nil
 }
 
-func (r *aggregateRepository) Save(aggregate Aggregate) error {
-	events := aggregate.GetUncommittedEvents()
+func (r *aggregateRepository) Save(aggregate AggregateComposition) error {
+	events := aggregate.getUncommittedEvents()
 	if len(events) == 0 {
 		return nil
 	}
@@ -65,17 +89,15 @@ func (r *aggregateRepository) Save(aggregate Aggregate) error {
 	if err := r.eventStore.WriteEvent(aggregate.AggregateName(), events...); err != nil {
 		return err
 	}
-	aggregate.ClearUncommittedEvents()
+	aggregate.clearUncommittedEvents()
 
 	for _, event := range events {
 		event = reflect.Indirect(reflect.ValueOf(event)).Interface().(Event)
-		aggregate.Apply(event)
-		aggregate.IncrementVersion()
-
 		for _, f := range r.publishEventHooks {
 			f(event)
 		}
 	}
+
 	return nil
 }
 
@@ -85,12 +107,12 @@ func (r *aggregateRepository) Save(aggregate Aggregate) error {
 // This is very useful to wire it to an eventbus for publishing the event to other listeners (projections)
 func NewAggregateRepository(
 	eventStore EventStore,
-	aggregateFactory AggregateFactoryFunc,
+	aggregateBuilder AggregateBuilder,
 	abstractEventFactory EventFactory,
 	publishEventHooks ...PublishEventFunc) AggregateRepository {
 	return &aggregateRepository{
 		eventStore:           eventStore,
-		aggregateFactory:     aggregateFactory,
+		aggregateBuilder:     aggregateBuilder,
 		abstractEventFactory: abstractEventFactory,
 		publishEventHooks:    publishEventHooks,
 	}

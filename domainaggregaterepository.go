@@ -46,13 +46,16 @@ func (r *DomainAggregateRepository) RepositoryFor(aggregateName string) Aggregat
 
 //Loads an aggregate of the given type and ID
 func (r *DomainAggregateRepository) Load(aggregateType string, aggregateId uuid.UUID) (Aggregate, error) {
+	context := NewAggregateContext(aggregateId, 0)
+	aggregate := newAggregateContextComposition(context, func(ctx AggregateContext) Aggregate {
+		return r.aggregateFactory.MakeAggregate(aggregateType, context)
+	})
 
-	aggregate := r.aggregateFactory.MakeAggregate(aggregateType, aggregateId)
 	if aggregate == nil {
 		return nil, fmt.Errorf("the repository has no aggregate factory registered for aggregate type: %s", aggregateType)
 	}
 
-	stream, err := r.eventStore.LoadStream(aggregateType, aggregateId)
+	stream, err := r.eventStore.LoadStream(aggregateType, aggregateId, context.Version())
 	if err != nil {
 		return nil, fmt.Errorf("cannot load events from stream reader for aggregate type: %s, error: %s", aggregateType, err)
 	}
@@ -74,15 +77,14 @@ func (r *DomainAggregateRepository) Load(aggregateType string, aggregateId uuid.
 		}
 
 		aggregate.Apply(event)
-		aggregate.IncrementVersion()
 	}
 
 	return aggregate, nil
 }
 
 //Save will save all the events to the event store.
-func (r *DomainAggregateRepository) Save(aggregate Aggregate) error {
-	for _, event := range aggregate.GetUncommittedEvents() {
+func (r *DomainAggregateRepository) Save(aggregate AggregateComposition) error {
+	for _, event := range aggregate.getUncommittedEvents() {
 		if err := r.eventStore.WriteEvent(aggregate.AggregateName(), event); err != nil {
 			return err
 		}
@@ -93,6 +95,6 @@ func (r *DomainAggregateRepository) Save(aggregate Aggregate) error {
 			r.eventBus.Publish(event)
 		}
 	}
-	aggregate.ClearUncommittedEvents()
+	aggregate.clearUncommittedEvents()
 	return nil
 }

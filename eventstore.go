@@ -3,7 +3,7 @@ package cqrs
 import "github.com/satori/go.uuid"
 
 type EventStore interface {
-	LoadStream(aggregateName string, aggregateId uuid.UUID) (EventStream, error)
+	LoadStream(aggregateName string, aggregateId uuid.UUID, version int) (EventStream, error)
 	WriteEvent(string, ...Event) error
 }
 

@@ -33,10 +33,10 @@ func NewEventBase(id uuid.UUID, version int) EventBase {
 
 // NewEventBaseFromAggregate constructor will create a new eventbase
 // based on the latest aggregate state
-func NewEventBaseFromAggregate(aggregate Aggregate) EventBase {
+func NewEventBaseFromAggregate(aggregate AggregateContext) EventBase {
 	return &eventBase{
 		id:      aggregate.AggregateId(),
-		version: aggregate.CurrentVersion() + 1,
+		version: aggregate.Version() + 1,
 	}
 }
 

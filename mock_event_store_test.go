@@ -9,13 +9,13 @@ type MockEventStore struct {
 	mock.Mock
 }
 
-// LoadStream provides a mock function with given fields: aggregateName, aggregateId
-func (_m *MockEventStore) LoadStream(aggregateName string, aggregateId uuid.UUID) (EventStream, error) {
-	ret := _m.Called(aggregateName, aggregateId)
+// LoadStream provides a mock function with given fields: aggregateName, aggregateId, version
+func (_m *MockEventStore) LoadStream(aggregateName string, aggregateId uuid.UUID, version int) (EventStream, error) {
+	ret := _m.Called(aggregateName, aggregateId, version)
 
 	var r0 EventStream
-	if rf, ok := ret.Get(0).(func(string, uuid.UUID) EventStream); ok {
-		r0 = rf(aggregateName, aggregateId)
+	if rf, ok := ret.Get(0).(func(string, uuid.UUID, int) EventStream); ok {
+		r0 = rf(aggregateName, aggregateId, version)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(EventStream)
@@ -23,8 +23,8 @@ func (_m *MockEventStore) LoadStream(aggregateName string, aggregateId uuid.UUID
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, uuid.UUID) error); ok {
-		r1 = rf(aggregateName, aggregateId)
+	if rf, ok := ret.Get(1).(func(string, uuid.UUID, int) error); ok {
+		r1 = rf(aggregateName, aggregateId, version)
 	} else {
 		r1 = ret.Error(1)
 	}

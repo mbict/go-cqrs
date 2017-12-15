@@ -13,21 +13,15 @@ func TestCallbackAggregateFactoryMake(t *testing.T) {
 	}
 
 	id := uuid.NewV4()
-	aggregate := f.MakeAggregate("aggregateA", id)
+	ctx := NewAggregateContext(id, 0)
+
+	aggregate := f.MakeAggregate("aggregateA", ctx)
 	if aggregate == nil {
 		t.Fatal("expected the constructed aggregate but got nil instead")
 	}
 
 	if aggregate.AggregateName() != "aggregateA" {
 		t.Errorf("expected an aggregate with name `%v` but got `%v`", "aggregateA", aggregate.AggregateName())
-	}
-
-	if !uuid.Equal(aggregate.AggregateId(), id) {
-		t.Errorf("expected an aggregate with aggregate id `%v` but got `%v`", id, aggregate.AggregateId())
-	}
-
-	if aggregate.Version() != 0 {
-		t.Errorf("expected an aggregate with version `%v` but got `%v`", 0, aggregate.Version())
 	}
 
 	if _, ok := aggregate.(*aggregateA); !ok {
@@ -38,7 +32,8 @@ func TestCallbackAggregateFactoryMake(t *testing.T) {
 func TestCallbackAggregateFactoryMakeWithUnknownAggregate(t *testing.T) {
 	f := NewCallbackAggregateFactory()
 
-	aggregate := f.MakeAggregate("this.aggregate.is.not.registered", uuid.NewV4())
+	ctx := NewAggregateContext(uuid.NewV4(), 0)
+	aggregate := f.MakeAggregate("this.aggregate.is.not.registered", ctx)
 	if aggregate != nil {
 		t.Fatalf("expected a nil response but got an aggregate instead `%T`", aggregate)
 	}

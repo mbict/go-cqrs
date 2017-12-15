@@ -32,7 +32,7 @@ func (InventoryItemRenamed) EventName() string {
 
 type ItemsCheckedInToInventory struct {
 	cqrs.EventBase
-	Count int `json:"count"`
+	Count int `json:"Count"`
 }
 
 func (ItemsCheckedInToInventory) EventName() string {
@@ -41,7 +41,7 @@ func (ItemsCheckedInToInventory) EventName() string {
 
 type ItemsRemovedFromInventory struct {
 	cqrs.EventBase
-	Count int `json:"count"`
+	Count int `json:"Count"`
 }
 
 func (ItemsRemovedFromInventory) EventName() string {

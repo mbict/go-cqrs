@@ -11,16 +11,6 @@ import (
 
 var fixedId = uuid.NewV4()
 
-type test_eventStore struct{}
-
-func (*test_eventStore) LoadStream(aggregateName string, aggregateId uuid.UUID) (EventStream, error) {
-	return &test_eventStream{i: 0, count: 100}, nil
-}
-
-func (*test_eventStore) WriteEvent(string, ...Event) error {
-	panic("implement me")
-}
-
 type test_eventStream struct {
 	i     int
 	count int
@@ -79,10 +69,11 @@ func BenchmarkAggregateRepositoryEvenPassedByValue(b *testing.B) {
 	id := uuid.NewV4()
 	event := &eventA{}
 
-	eventStore := &test_eventStore{}
+	eventStore := &MockEventStore{}
+	eventStore.On("LoadStream", mock.Anything, mock.Anything, mock.Anything).Return(&test_eventStream{i: 0, count: 100}, nil)
 	eventFactory := &MockEventFactory{}
 	eventFactory.On("MakeEvent", mock.Anything, mock.Anything, mock.Anything).Return(event, nil)
-	repository := NewAggregateRepository(eventStore, aggregateAFactory, eventFactory)
+	repository := NewAggregateRepository(eventStore, DefaultAggregateBuilder(aggregateAFactory), eventFactory)
 
 	for n := 0; n < b.N; n++ {
 		//eventStream := &MockEventStream{}

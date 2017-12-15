@@ -27,7 +27,7 @@ func NewDatabaseEventStore(db *sql.DB) cqrs.EventStore {
 		log.Fatal(err)
 	}
 
-	selectStmt, err := db.Prepare("SELECT aggregate_id, type, data, version, created FROM events WHERE aggregate_id = $1 AND aggregate_type = $2 ORDER BY version ASC")
+	selectStmt, err := db.Prepare("SELECT aggregate_id, type, data, version, created FROM events WHERE aggregate_id = $1 AND aggregate_type = $2 AND version > $3 ORDER BY version ASC")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -92,9 +92,9 @@ func (s *EventStore) FindStream(aggregateTypes []string, aggregateIds []uuid.UUI
 	return database.NewDatabaseEventStream(rows), nil
 }
 
-func (s *EventStore) LoadStream(aggregateType string, aggregateId uuid.UUID) (cqrs.EventStream, error) {
+func (s *EventStore) LoadStream(aggregateType string, aggregateId uuid.UUID, version int) (cqrs.EventStream, error) {
 
-	rows, err := s.selectStmt.Query(aggregateId, aggregateType)
+	rows, err := s.selectStmt.Query(aggregateId, aggregateType, version)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}

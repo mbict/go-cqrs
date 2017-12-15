@@ -55,7 +55,7 @@ func eventAFactory(id uuid.UUID, version int) Event {
 }
 
 type aggregateA struct {
-	*AggregateBase
+	ctx AggregateContext
 }
 
 func (*aggregateA) AggregateName() string {
@@ -70,8 +70,8 @@ func (*aggregateA) Apply(event Event) error {
 	return nil
 }
 
-func aggregateAFactory(id uuid.UUID) Aggregate {
+func aggregateAFactory(ctx AggregateContext) Aggregate {
 	return &aggregateA{
-		AggregateBase: NewAggregateBase(id),
+		ctx: ctx,
 	}
 }
