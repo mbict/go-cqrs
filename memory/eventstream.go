@@ -5,6 +5,7 @@ import (
 	"github.com/jinzhu/copier"
 	"github.com/mbict/go-cqrs"
 	"github.com/satori/go.uuid"
+	"time"
 )
 
 var ErrNoEventData = errors.New("Cannot scan, no event data")
@@ -47,6 +48,15 @@ func (s *EventStream) Version() int {
 		return -1
 	}
 	return s.currentEvent.Version()
+}
+
+var emptyTime = time.Time{}
+
+func (s *EventStream) OccurredAt() time.Time {
+	if s.currentEvent == nil {
+		return emptyTime
+	}
+	return s.currentEvent.OccurredAt()
 }
 
 func (s *EventStream) Next() bool {

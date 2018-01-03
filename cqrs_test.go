@@ -2,6 +2,7 @@ package cqrs
 
 import (
 	"github.com/satori/go.uuid"
+	"time"
 )
 
 type commandAWithValidate struct {
@@ -48,9 +49,9 @@ func (eventB) EventName() string {
 	return "event.b"
 }
 
-func eventAFactory(id uuid.UUID, version int) Event {
+func eventAFactory(id uuid.UUID, version int, occurredAt time.Time) Event {
 	return &eventA{
-		EventBase: NewEventBase(id, version),
+		EventBase: NewEventBase(id, version, occurredAt),
 	}
 }
 
