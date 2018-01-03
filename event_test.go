@@ -20,4 +20,8 @@ func TestNewEventBaseFromAggregate(t *testing.T) {
 	if !uuid.Equal(eventBase.AggregateId(), id) {
 		t.Errorf("expected aggregate id `%s` but got `%s`", id.String(), eventBase.AggregateId())
 	}
+
+	if eventBase.OccurredAt().IsZero() {
+		t.Error("expected aggregate occurred at to be arround now but got an empty time")
+	}
 }

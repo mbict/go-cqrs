@@ -3,6 +3,7 @@ package cqrs
 import (
 	"github.com/mbict/go-eventbus"
 	"github.com/satori/go.uuid"
+	"time"
 )
 
 // Event is the interface of an event what an aggregate needs
@@ -14,20 +15,23 @@ type Event interface {
 type EventBase interface {
 	AggregateId() uuid.UUID
 	Version() int
+	OccurredAt() time.Time
 }
 
 // EventBase is an utility class for not reimplementing AggregateId and Version
 // methods of the Event interface
 type eventBase struct {
-	id      uuid.UUID
-	version int
+	id         uuid.UUID
+	version    int
+	occurredAt time.Time
 }
 
 // NewEventBase constructor with plain version
-func NewEventBase(id uuid.UUID, version int) EventBase {
+func NewEventBase(id uuid.UUID, version int, occurredAt time.Time) EventBase {
 	return &eventBase{
-		id:      id,
-		version: version,
+		id:         id,
+		version:    version,
+		occurredAt: occurredAt,
 	}
 }
 
@@ -35,8 +39,9 @@ func NewEventBase(id uuid.UUID, version int) EventBase {
 // based on the latest aggregate state
 func NewEventBaseFromAggregate(aggregate AggregateContext) EventBase {
 	return &eventBase{
-		id:      aggregate.AggregateId(),
-		version: aggregate.Version() + 1,
+		id:         aggregate.AggregateId(),
+		version:    aggregate.Version() + 1,
+		occurredAt: time.Now(),
 	}
 }
 
@@ -48,4 +53,9 @@ func (e *eventBase) AggregateId() uuid.UUID {
 // Version returns the event version/sequence in the stream
 func (e *eventBase) Version() int {
 	return e.version
+}
+
+// OccurredAt returns the date and time the event occurred the first time
+func (e *eventBase) OccurredAt() time.Time {
+	return e.occurredAt
 }

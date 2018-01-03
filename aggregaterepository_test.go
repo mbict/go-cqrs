@@ -5,6 +5,7 @@ import (
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/mock"
 	"testing"
+	"time"
 )
 
 /*********************
@@ -38,11 +39,13 @@ func TestAggregateRepository_LoadWithStreamError(t *testing.T) {
 }
 
 func TestAggregateRepository_LoadWithUnkownEventFactoryError(t *testing.T) {
+	occurredAt := time.Now()
 	stream := &MockEventStream{}
 	stream.On("Next").Return(true).Once()
 	stream.On("Next").Return(false)
 	stream.On("EventName").Return("testEvent")
 	stream.On("Version").Return(1)
+	stream.On("OccurredAt").Return(occurredAt)
 	store := &MockEventStore{}
 	store.On("LoadStream", mock.Anything, mock.Anything, mock.Anything).Return(stream, nil)
 	aggregate := &MockAggregate{}
@@ -51,7 +54,7 @@ func TestAggregateRepository_LoadWithUnkownEventFactoryError(t *testing.T) {
 		return aggregate
 	}
 	eventFactory := &MockEventFactory{}
-	eventFactory.On("MakeEvent", "testEvent", mock.Anything, 1).Return(nil)
+	eventFactory.On("MakeEvent", "testEvent", mock.Anything, 1, occurredAt).Return(nil)
 
 	repo := NewAggregateRepository(store, DefaultAggregateBuilder(aggregateFactory), eventFactory)
 
@@ -69,12 +72,14 @@ func TestAggregateRepository_LoadWithUnkownEventFactoryError(t *testing.T) {
 }
 
 func TestAggregateRepository_LoadWithVersionMismatch(t *testing.T) {
+	occurredAt := time.Now()
 	event := &eventA{}
 	stream := &MockEventStream{}
 	stream.On("Next").Return(true).Once()
 	stream.On("Next").Return(false)
 	stream.On("EventName").Return("testEvent")
 	stream.On("Version").Return(9999999)
+	stream.On("OccurredAt").Return(occurredAt)
 	store := &MockEventStore{}
 	store.On("LoadStream", mock.Anything, mock.Anything, mock.Anything).Return(stream, nil)
 	aggregate := &MockAggregate{}
@@ -83,7 +88,7 @@ func TestAggregateRepository_LoadWithVersionMismatch(t *testing.T) {
 		return aggregate
 	}
 	eventFactory := &MockEventFactory{}
-	eventFactory.On("MakeEvent", "testEvent", mock.Anything, 9999999).Return(event)
+	eventFactory.On("MakeEvent", "testEvent", mock.Anything, 9999999, occurredAt).Return(event)
 
 	repo := NewAggregateRepository(store, DefaultAggregateBuilder(aggregateFactory), eventFactory)
 
@@ -101,6 +106,7 @@ func TestAggregateRepository_LoadWithVersionMismatch(t *testing.T) {
 }
 
 func TestAggregateRepository_LoadWithScanFailure(t *testing.T) {
+	occurredAt := time.Now()
 	scanError := errors.New("scan error")
 	event := &eventA{}
 	stream := &MockEventStream{}
@@ -108,6 +114,7 @@ func TestAggregateRepository_LoadWithScanFailure(t *testing.T) {
 	stream.On("Next").Return(false)
 	stream.On("EventName").Return("testEvent")
 	stream.On("Version").Return(1)
+	stream.On("OccurredAt").Return(occurredAt)
 	stream.On("Scan", mock.Anything).Return(scanError)
 	store := &MockEventStore{}
 	store.On("LoadStream", mock.Anything, mock.Anything, mock.Anything).Return(stream, nil)
@@ -118,7 +125,7 @@ func TestAggregateRepository_LoadWithScanFailure(t *testing.T) {
 		return aggregate
 	}
 	eventFactory := &MockEventFactory{}
-	eventFactory.On("MakeEvent", "testEvent", mock.Anything, 1).Return(event)
+	eventFactory.On("MakeEvent", "testEvent", mock.Anything, 1, occurredAt).Return(event)
 
 	repo := NewAggregateRepository(store, DefaultAggregateBuilder(aggregateFactory), eventFactory)
 
@@ -172,12 +179,14 @@ func TestAggregateRepository_LoadWithNoEvents(t *testing.T) {
 }
 
 func TestAggregateRepository_LoadWithOneEvent(t *testing.T) {
+	occurredAt := time.Now()
 	event := &eventA{}
 	stream := &MockEventStream{}
 	stream.On("Next").Return(true).Once()
 	stream.On("Next").Return(false)
 	stream.On("EventName").Return("").Once().Return("testEvent")
 	stream.On("Version").Return(1)
+	stream.On("OccurredAt").Return(occurredAt)
 	stream.On("Scan", mock.Anything).Return(nil)
 	store := &MockEventStore{}
 	store.On("LoadStream", mock.Anything, mock.Anything, mock.Anything).Return(stream, nil)
@@ -190,7 +199,7 @@ func TestAggregateRepository_LoadWithOneEvent(t *testing.T) {
 		return aggregate
 	}
 	eventFactory := &MockEventFactory{}
-	eventFactory.On("MakeEvent", "testEvent", mock.Anything, 1).Return(event)
+	eventFactory.On("MakeEvent", "testEvent", mock.Anything, 1, occurredAt).Return(event)
 
 	repo := NewAggregateRepository(store, DefaultAggregateBuilder(aggregateFactory), eventFactory)
 
@@ -218,6 +227,7 @@ func TestAggregateRepository_LoadWithMultipleEvents(t *testing.T) {
 	stream.On("Next").Return(true).Times(3)
 	stream.On("Next").Return(false)
 	stream.On("EventName").Return("").Times(3).Return("testEvent")
+	stream.On("OccurredAt").Return(time.Now()).Times(3)
 	stream.On("Version").Return(1).Times(2)
 	stream.On("Version").Return(2).Times(2)
 	stream.On("Version").Return(3).Times(2)
@@ -238,7 +248,7 @@ func TestAggregateRepository_LoadWithMultipleEvents(t *testing.T) {
 		return aggregate
 	}
 	eventFactory := &MockEventFactory{}
-	eventFactory.On("MakeEvent", "testEvent", mock.Anything, mock.Anything).Return(event)
+	eventFactory.On("MakeEvent", "testEvent", mock.Anything, mock.Anything, mock.Anything).Return(event)
 
 	repo := NewAggregateRepository(store, DefaultAggregateBuilder(aggregateFactory), eventFactory)
 

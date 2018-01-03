@@ -62,7 +62,7 @@ func (r *DomainAggregateRepository) Load(aggregateType string, aggregateId uuid.
 
 	for stream != nil && stream.Next() {
 
-		event := r.eventFactory.MakeEvent(stream.EventName(), aggregateId, stream.Version())
+		event := r.eventFactory.MakeEvent(stream.EventName(), aggregateId, stream.Version(), stream.OccurredAt())
 		if event == nil {
 			return nil, fmt.Errorf("the repository has no event factory registered for event type: %s", stream.EventName())
 		}
