@@ -42,6 +42,10 @@ func (s *EventStream) Version() int {
 	return s.version
 }
 
+func (s *EventStream) OccurredAt() time.Time {
+	return s.timestamp
+}
+
 func (s *EventStream) Next() bool {
 	if s.rows.Next() {
 		if s.err = s.rows.Scan(&s.aggregateId, &s.eventType, &s.data, &s.version, &s.timestamp); s.err != nil {

@@ -20,7 +20,7 @@ type EventStore struct {
 }
 
 func NewDatabaseEventStore(db *sql.DB) cqrs.EventStore {
-	insertStmt, err := db.Prepare("INSERT INTO events (aggregate_id, aggregate_type, type, data, version, created) VALUES (?,?,?,?,?, NOW())")
+	insertStmt, err := db.Prepare("INSERT INTO events (aggregate_id, aggregate_type, type, data, version, created) VALUES (?,?,?,?,?,?)")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -108,9 +108,8 @@ func (s *EventStore) WriteEvent(aggregateType string, events ...cqrs.Event) erro
 			return err
 		}
 
-		result, err := tx.Stmt(s.insertStmt).Exec(MysqlUUID(event.AggregateId()), aggregateType, event.EventName(), payload, event.Version())
+		result, err := tx.Stmt(s.insertStmt).Exec(MysqlUUID(event.AggregateId()), aggregateType, event.EventName(), payload, event.Version(), event.OccurredAt())
 		if err != nil {
-
 			return err
 		}
 

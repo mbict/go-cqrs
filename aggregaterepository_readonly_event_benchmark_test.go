@@ -5,6 +5,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"reflect"
 	"testing"
+	"time"
 )
 
 //simple benchmark tests to see if the reflect will impact real world usage
@@ -12,8 +13,9 @@ import (
 var fixedId = uuid.NewV4()
 
 type test_eventStream struct {
-	i     int
-	count int
+	i          int
+	count      int
+	occurredAt time.Time
 }
 
 func (*test_eventStream) EventName() string {
@@ -26,6 +28,10 @@ func (*test_eventStream) AggregateId() uuid.UUID {
 
 func (s *test_eventStream) Version() int {
 	return s.i
+}
+
+func (s *test_eventStream) OccurredAt() time.Time {
+	return s.occurredAt
 }
 
 func (s *test_eventStream) Next() bool {
