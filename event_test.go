@@ -6,7 +6,7 @@ import (
 )
 
 func TestNewEventBaseFromAggregate(t *testing.T) {
-	id := uuid.NewV4()
+	id := uuid.Must(uuid.NewV4())
 	agg := &MockAggregateContext{}
 	agg.On("AggregateId").Return(id)
 	agg.On("Version").Return(10)

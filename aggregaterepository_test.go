@@ -25,7 +25,7 @@ func TestAggregateRepository_LoadWithStreamError(t *testing.T) {
 	}
 	repo := NewAggregateRepository(store, DefaultAggregateBuilder(aggregateFactory), nil)
 
-	agg, err := repo.Load(uuid.NewV4())
+	agg, err := repo.Load(uuid.Must(uuid.NewV4()))
 	if err == nil || err.Error() != "cannot load events from stream reader, error: stream error" {
 		t.Errorf("expected error `%v`, but got error `%v`", streamError, err)
 	}
@@ -58,7 +58,7 @@ func TestAggregateRepository_LoadWithUnkownEventFactoryError(t *testing.T) {
 
 	repo := NewAggregateRepository(store, DefaultAggregateBuilder(aggregateFactory), eventFactory)
 
-	agg, err := repo.Load(uuid.NewV4())
+	agg, err := repo.Load(uuid.Must(uuid.NewV4()))
 	if err == nil || err.Error() != "the repository has no event factory registered for event type: testEvent" {
 		t.Errorf("expected error `%v`, but got error `%v`", "", err)
 	}
@@ -92,7 +92,7 @@ func TestAggregateRepository_LoadWithVersionMismatch(t *testing.T) {
 
 	repo := NewAggregateRepository(store, DefaultAggregateBuilder(aggregateFactory), eventFactory)
 
-	agg, err := repo.Load(uuid.NewV4())
+	agg, err := repo.Load(uuid.Must(uuid.NewV4()))
 	if err == nil || err.Error() != "event version (9999999) mismatch with Aggregate next Version (1)" {
 		t.Errorf("expected version mismatch error `%v`, but got error `%v`", "event version (9999999) mismatch with Aggregate next Version (1)", err)
 	}
@@ -129,7 +129,7 @@ func TestAggregateRepository_LoadWithScanFailure(t *testing.T) {
 
 	repo := NewAggregateRepository(store, DefaultAggregateBuilder(aggregateFactory), eventFactory)
 
-	agg, err := repo.Load(uuid.NewV4())
+	agg, err := repo.Load(uuid.Must(uuid.NewV4()))
 	if err == nil || err.Error() != "the repository cannot populate event data from stream for event type: testEvent, with error `scan error`" {
 		t.Errorf("expected a scan error, but got error `%v`", err)
 	}
@@ -161,7 +161,7 @@ func TestAggregateRepository_LoadWithNoEvents(t *testing.T) {
 
 	repo := NewAggregateRepository(store, DefaultAggregateBuilder(aggregateFactory), nil)
 
-	agg, err := repo.Load(uuid.NewV4())
+	agg, err := repo.Load(uuid.Must(uuid.NewV4()))
 	if err != nil {
 		t.Errorf("expected a nil error, but got error `%v`", err)
 	}
@@ -203,7 +203,7 @@ func TestAggregateRepository_LoadWithOneEvent(t *testing.T) {
 
 	repo := NewAggregateRepository(store, DefaultAggregateBuilder(aggregateFactory), eventFactory)
 
-	agg, err := repo.Load(uuid.NewV4())
+	agg, err := repo.Load(uuid.Must(uuid.NewV4()))
 	if err != nil {
 		t.Errorf("expected a nil error, but got error `%v`", err)
 	}
@@ -252,7 +252,7 @@ func TestAggregateRepository_LoadWithMultipleEvents(t *testing.T) {
 
 	repo := NewAggregateRepository(store, DefaultAggregateBuilder(aggregateFactory), eventFactory)
 
-	agg, err := repo.Load(uuid.NewV4())
+	agg, err := repo.Load(uuid.Must(uuid.NewV4()))
 	if err != nil {
 		t.Errorf("expected a nil error, but got error `%v`", err)
 	}

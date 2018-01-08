@@ -18,11 +18,29 @@ func (e ErrorNotAnAggregateCommand) Error() string {
 	return fmt.Sprintf("cannot convert to aggregate command for command: \"%s\"", string(e))
 }
 
+type ErrorAggregateCannotHandleCommand string
+
+func (e ErrorAggregateCannotHandleCommand) Error() string {
+	return fmt.Sprintf("aggregate cannot handle commands directly for command: \"%s\"", string(e))
+}
+
 // AggregateCommandHandler is a command handler middleware who loads the aggregate
 // calls the aggregate command handler to execute the business logic and saves the
 // events to the aggregate store afterwards.
 func AggregateCommandHandler(repository AggregateRepository) commandbus.CommandHandler {
-	return commandbus.CommandHandlerFunc(func(ctx context.Context, command commandbus.Command) error {
+	return AggregateCommandHandlerCallback(repository, func(aggregate Aggregate, cmd Command) error {
+		agg, ok := aggregate.(AggregateHandlesCommands)
+		if !ok {
+			return ErrorAggregateCannotHandleCommand(cmd.CommandName())
+		}
+		return agg.HandleCommand(cmd)
+	})
+}
+
+type AggregateCommandHandlerFunc func(aggregate Aggregate, command Command) error
+
+func AggregateCommandHandlerCallback(repository AggregateRepository, handler AggregateCommandHandlerFunc) commandbus.CommandHandler {
+	return commandbus.CommandHandlerFunc(func(_ context.Context, command commandbus.Command) error {
 		cmd, ok := command.(Command)
 		if !ok {
 			return ErrorNotAnAggregateCommand(command.CommandName())
@@ -44,7 +62,7 @@ func AggregateCommandHandler(repository AggregateRepository) commandbus.CommandH
 			}
 		}
 
-		if err = aggregate.HandleCommand(cmd); err != nil {
+		if err = handler(aggregate, cmd); err != nil {
 			return err
 		}
 

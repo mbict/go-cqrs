@@ -13,7 +13,7 @@ func TestCallbackEventFactoryMake(t *testing.T) {
 		t.Errorf("expected a nil error but got error : %v", err)
 	}
 
-	id := uuid.NewV4()
+	id := uuid.Must(uuid.NewV4())
 	occurredAt := time.Now()
 	event := f.MakeEvent("event.a", id, 1, occurredAt)
 	if event == nil {
@@ -44,7 +44,7 @@ func TestCallbackEventFactoryMake(t *testing.T) {
 func TestCallbackEventFactoryMakeWithUnknownEvent(t *testing.T) {
 	f := NewCallbackEventFactory()
 
-	event := f.MakeEvent("this.event.is.not.registered", uuid.NewV4(), 1, time.Now())
+	event := f.MakeEvent("this.event.is.not.registered", uuid.Must(uuid.NewV4()), 1, time.Now())
 	if event != nil {
 		t.Fatalf("expected a nil response but got an event instead `%T`", event)
 	}

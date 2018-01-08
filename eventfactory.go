@@ -44,7 +44,7 @@ func NewCallbackEventFactory() *CallbackEventFactory {
 // RegisterCallback registers a delegate that will return an event instance given
 // an event type name as a string.
 func (t *CallbackEventFactory) RegisterCallback(callback EventFactoryFunc) error {
-	e := callback(uuid.NewV4(), 0, time.Now())
+	e := callback(uuid.Must(uuid.NewV4()), 0, time.Now())
 
 	rv := reflect.ValueOf(e)
 	if rv.Kind() != reflect.Ptr || rv.IsNil() {

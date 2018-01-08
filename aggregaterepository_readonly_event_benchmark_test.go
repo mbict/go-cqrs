@@ -10,7 +10,7 @@ import (
 
 //simple benchmark tests to see if the reflect will impact real world usage
 
-var fixedId = uuid.NewV4()
+var fixedId = uuid.Must(uuid.NewV4())
 
 type test_eventStream struct {
 	i          int
@@ -72,7 +72,7 @@ func BenchmarkReflectOverhead(b *testing.B) {
 }
 
 func BenchmarkAggregateRepositoryEvenPassedByValue(b *testing.B) {
-	id := uuid.NewV4()
+	id := uuid.Must(uuid.NewV4())
 	event := &eventA{}
 
 	eventStore := &MockEventStore{}
@@ -100,7 +100,7 @@ func BenchmarkAggregateRepositoryEvenPassedByValue(b *testing.B) {
 }
 
 //func BenchmarkAggregateRepositoryEvenPassedByReference(b *testing.B) {
-//	id := uuid.NewV4()
+//	id := uuid.Must(uuid.NewV4())
 //	event := &eventA{}
 //
 //	eventStore := &test_eventStore{}

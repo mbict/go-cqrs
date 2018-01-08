@@ -12,7 +12,7 @@ func TestCallbackAggregateFactoryMake(t *testing.T) {
 		t.Errorf("expected a nil error but got error : %v", err)
 	}
 
-	id := uuid.NewV4()
+	id := uuid.Must(uuid.NewV4())
 	ctx := NewAggregateContext(id, 0)
 
 	aggregate := f.MakeAggregate("aggregateA", ctx)
@@ -32,7 +32,7 @@ func TestCallbackAggregateFactoryMake(t *testing.T) {
 func TestCallbackAggregateFactoryMakeWithUnknownAggregate(t *testing.T) {
 	f := NewCallbackAggregateFactory()
 
-	ctx := NewAggregateContext(uuid.NewV4(), 0)
+	ctx := NewAggregateContext(uuid.Must(uuid.NewV4()), 0)
 	aggregate := f.MakeAggregate("this.aggregate.is.not.registered", ctx)
 	if aggregate != nil {
 		t.Fatalf("expected a nil response but got an aggregate instead `%T`", aggregate)

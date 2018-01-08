@@ -6,7 +6,7 @@ import (
 )
 
 func TestAggregateContext_AggregateId(t *testing.T) {
-	id := uuid.NewV4()
+	id := uuid.Must(uuid.NewV4())
 	ctx := NewAggregateContext(id, 0)
 
 	if uuid.Equal(ctx.AggregateId(), id) == false {
@@ -15,7 +15,7 @@ func TestAggregateContext_AggregateId(t *testing.T) {
 }
 
 func TestAggregateContext_incrementVersion(t *testing.T) {
-	id := uuid.NewV4()
+	id := uuid.Must(uuid.NewV4())
 	ctx := NewAggregateContext(id, 123)
 
 	if ctx.Version() != 123 {
@@ -30,7 +30,7 @@ func TestAggregateContext_incrementVersion(t *testing.T) {
 }
 
 func TestAggregateContext_EventsHandling(t *testing.T) {
-	id := uuid.NewV4()
+	id := uuid.Must(uuid.NewV4())
 	ctx := NewAggregateContext(id, 0)
 
 	ctx.StoreEvent(&MockEvent{})
