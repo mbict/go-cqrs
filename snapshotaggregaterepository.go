@@ -44,7 +44,7 @@ func (r *snapshotAggregateRepository) Save(aggregate AggregateComposition) error
 	if aggSnapshotComp, ok := aggregate.(*aggregateSnapshotContextComposition); ok {
 		needSnapshot := (aggSnapshotComp.snapshotVersion + r.differenceOffset) < aggregate.Version()
 		if needSnapshot == true {
-			return r.snapshotStore.Write(aggregate)
+			return r.snapshotStore.Write(aggSnapshotComp)
 		}
 	}
 

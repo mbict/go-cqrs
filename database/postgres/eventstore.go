@@ -108,11 +108,10 @@ func (s *EventStore) LoadStream(aggregateType string, aggregateId uuid.UUID, ver
 
 func (s *EventStore) WriteEvent(aggregateType string, events ...cqrs.Event) error {
 	tx, err := s.db.Begin()
-	defer tx.Rollback()
-
 	if err != nil {
 		return nil
 	}
+	defer tx.Rollback()
 
 	for _, event := range events {
 		payload, err := json.Marshal(event)
@@ -125,7 +124,12 @@ func (s *EventStore) WriteEvent(aggregateType string, events ...cqrs.Event) erro
 			return err
 		}
 
-		if affectedRows, err := result.RowsAffected(); err != nil || affectedRows == 0 {
+		affectedRows, err := result.RowsAffected()
+		if err != nil {
+			return err
+		}
+
+		if affectedRows == 0 {
 			return ErrNoAffectedRows
 		}
 	}

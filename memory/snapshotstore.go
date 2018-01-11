@@ -1,7 +1,6 @@
 package memory
 
 import (
-	"fmt"
 	"github.com/mbict/go-cqrs"
 	"github.com/satori/go.uuid"
 	"github.com/square/go-jose/json"
@@ -28,7 +27,6 @@ func (s *snapshotStore) Load(aggregateId uuid.UUID, aggregate cqrs.Aggregate) (i
 		return 0, nil
 	}
 
-	fmt.Println("load from snapshot")
 	return snapshot.version, json.Unmarshal(snapshot.data, aggregate)
 }
 
@@ -47,7 +45,6 @@ func (s *snapshotStore) Write(aggregate cqrs.AggregateComposition) error {
 		data:    data,
 	}
 
-	fmt.Println("store snapshot")
 	return nil
 }
 
