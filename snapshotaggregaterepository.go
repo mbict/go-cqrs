@@ -4,26 +4,74 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-// aggregateSnapshotContextComposition is a wrapper to store the initial snapshot version
-type aggregateSnapshotContextComposition struct {
+// aggregateSnapshotComposition is a wrapper to store the initial snapshot version
+type aggregateSnapshotComposition struct {
 	snapshotVersion int
-	AggregateContext
-	Aggregate
+	aggregate       Aggregate
 }
 
-func SnapshotAggregateBuilder(factory AggregateFactoryFunc, snapshotStore SnapshotStore) AggregateBuilder {
-	return func(aggregateId uuid.UUID) (AggregateComposition, error) {
-		aggregateComposition := &aggregateSnapshotContextComposition{}
-		aggregateState := factory(aggregateComposition)
+func (c *aggregateSnapshotComposition) Context() AggregateContext {
+	return c.aggregate
+}
 
-		version, err := snapshotStore.Load(aggregateId, aggregateState)
+func (c *aggregateSnapshotComposition) Aggregate() Aggregate {
+	if a, ok := c.aggregate.(AggregateComposition); ok {
+		return a.Aggregate()
+	}
+	return c.aggregate
+}
+
+func (c *aggregateSnapshotComposition) AggregateId() uuid.UUID {
+	return c.aggregate.AggregateId()
+}
+
+func (c *aggregateSnapshotComposition) Version() int {
+	return c.aggregate.Version()
+}
+
+func (c *aggregateSnapshotComposition) StoreEvent(e Event) {
+	c.aggregate.StoreEvent(e)
+}
+
+func (c *aggregateSnapshotComposition) incrementVersion() {
+	c.aggregate.incrementVersion()
+}
+
+func (c *aggregateSnapshotComposition) setVersion(version int) {
+	c.aggregate.setVersion(version)
+}
+
+func (c *aggregateSnapshotComposition) getUncommittedEvents() []Event {
+	return c.aggregate.getUncommittedEvents()
+}
+
+func (c *aggregateSnapshotComposition) clearUncommittedEvents() {
+	c.aggregate.clearUncommittedEvents()
+}
+
+func (c *aggregateSnapshotComposition) AggregateName() string {
+	return c.aggregate.AggregateName()
+}
+
+func (c *aggregateSnapshotComposition) Apply(e Event) error {
+	return c.aggregate.Apply(e)
+}
+
+// SnapshotAggregateBuilder
+func SnapshotAggregateBuilder(factory AggregateFactoryFunc, snapshotStore SnapshotStore) AggregateBuilder {
+	return func(aggregateId uuid.UUID) (Aggregate, error) {
+		aggregateComposition := &aggregateSnapshotComposition{}
+		context := NewAggregateContext(aggregateId, 0)
+		aggregate := factory(context)
+
+		version, err := snapshotStore.Load(aggregateId, aggregate)
 		if err != nil {
 			return nil, err
 		}
 
+		aggregate.setVersion(version)
 		aggregateComposition.snapshotVersion = version
-		aggregateComposition.Aggregate = aggregateState
-		aggregateComposition.AggregateContext = NewAggregateContext(aggregateId, version)
+		aggregateComposition.aggregate = aggregate
 
 		return aggregateComposition, nil
 	}
@@ -35,16 +83,16 @@ type snapshotAggregateRepository struct {
 	differenceOffset int
 }
 
-func (r *snapshotAggregateRepository) Save(aggregate AggregateComposition) error {
+func (r *snapshotAggregateRepository) Save(aggregate Aggregate) error {
 	if err := r.AggregateRepository.Save(aggregate); err != nil {
 		return err
 	}
 
 	//if this aggregate is constructed out of a snapshot composition we check if we need to create a new snapshot
-	if aggSnapshotComp, ok := aggregate.(*aggregateSnapshotContextComposition); ok {
-		needSnapshot := (aggSnapshotComp.snapshotVersion + r.differenceOffset) < aggregate.Version()
+	if aggSnapshotComp, ok := aggregate.(*aggregateSnapshotComposition); ok {
+		needSnapshot := aggregate.Version() >= (aggSnapshotComp.snapshotVersion + r.differenceOffset)
 		if needSnapshot == true {
-			return r.snapshotStore.Write(aggSnapshotComp)
+			return r.snapshotStore.Write(aggSnapshotComp.Aggregate())
 		}
 	}
 

@@ -46,6 +46,7 @@ func AggregateCommandHandlerCallback(repository AggregateRepository, handler Agg
 			return ErrorNotAnAggregateCommand(command.CommandName())
 		}
 
+		// load aggregate from store
 		aggregate, err := repository.Load(cmd.AggregateId())
 		if err != nil {
 			return err
@@ -55,17 +56,25 @@ func AggregateCommandHandlerCallback(repository AggregateRepository, handler Agg
 			return ErrorAggregateNotFound(cmd.AggregateId().String())
 		}
 
-		//run validation if there is a validate structure implemented
+		// run validation if there is a validate structure implemented
 		if validate, ok := command.(Validate); ok {
 			if err := validate.Validate(); err != nil {
 				return err
 			}
 		}
 
-		if err = handler(aggregate, cmd); err != nil {
+		// if it is an aggregate composition we need to get the real aggregate
+		var agg Aggregate = aggregate
+		if aggregateComposition, ok := aggregate.(AggregateComposition); ok {
+			agg = aggregateComposition.Aggregate()
+		}
+
+		//call the handler
+		if err = handler(agg, cmd); err != nil {
 			return err
 		}
 
+		// save event to the event store
 		if err = repository.Save(aggregate); err != nil {
 			return err
 		}

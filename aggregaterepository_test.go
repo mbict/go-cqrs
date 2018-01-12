@@ -20,6 +20,7 @@ func TestAggregateRepository_LoadWithStreamError(t *testing.T) {
 	store.On("LoadStream", mock.Anything, mock.Anything, mock.Anything).Return(nil, streamError)
 	aggregate := &MockAggregate{}
 	aggregate.On("AggregateName").Return("testAggregate")
+	aggregate.On("Version").Return(1)
 	aggregateFactory := func(ctx AggregateContext) Aggregate {
 		return aggregate
 	}
@@ -50,6 +51,7 @@ func TestAggregateRepository_LoadWithUnkownEventFactoryError(t *testing.T) {
 	store.On("LoadStream", mock.Anything, mock.Anything, mock.Anything).Return(stream, nil)
 	aggregate := &MockAggregate{}
 	aggregate.On("AggregateName").Return("testAggregate")
+	aggregate.On("Version").Return(1)
 	aggregateFactory := func(ctx AggregateContext) Aggregate {
 		return aggregate
 	}
@@ -78,23 +80,24 @@ func TestAggregateRepository_LoadWithVersionMismatch(t *testing.T) {
 	stream.On("Next").Return(true).Once()
 	stream.On("Next").Return(false)
 	stream.On("EventName").Return("testEvent")
-	stream.On("Version").Return(9999999)
+	stream.On("Version").Return(999)
 	stream.On("OccurredAt").Return(occurredAt)
 	store := &MockEventStore{}
 	store.On("LoadStream", mock.Anything, mock.Anything, mock.Anything).Return(stream, nil)
 	aggregate := &MockAggregate{}
 	aggregate.On("AggregateName").Return("testAggregate")
+	aggregate.On("Version").Return(0)
 	aggregateFactory := func(ctx AggregateContext) Aggregate {
 		return aggregate
 	}
 	eventFactory := &MockEventFactory{}
-	eventFactory.On("MakeEvent", "testEvent", mock.Anything, 9999999, occurredAt).Return(event)
+	eventFactory.On("MakeEvent", "testEvent", mock.Anything, 999, occurredAt).Return(event)
 
 	repo := NewAggregateRepository(store, DefaultAggregateBuilder(aggregateFactory), eventFactory)
 
 	agg, err := repo.Load(uuid.Must(uuid.NewV4()))
-	if err == nil || err.Error() != "event version (9999999) mismatch with Aggregate next Version (1)" {
-		t.Errorf("expected version mismatch error `%v`, but got error `%v`", "event version (9999999) mismatch with Aggregate next Version (1)", err)
+	if err == nil || err.Error() != "event version (999) mismatch with Aggregate next Version (1)" {
+		t.Errorf("expected version mismatch error `%v`, but got error `%v`", "event version (999) mismatch with Aggregate next Version (1)", err)
 	}
 
 	if agg != nil {
@@ -155,6 +158,7 @@ func TestAggregateRepository_LoadWithNoEvents(t *testing.T) {
 	store.On("LoadStream", mock.Anything, mock.Anything, mock.Anything).Return(stream, nil)
 	aggregate := &MockAggregate{}
 	aggregate.On("AggregateName").Return("testAggregate")
+	aggregate.On("Version").Return(1)
 	aggregateFactory := func(ctx AggregateContext) Aggregate {
 		return aggregate
 	}
@@ -238,10 +242,11 @@ func TestAggregateRepository_LoadWithMultipleEvents(t *testing.T) {
 	store.On("LoadStream", mock.Anything, mock.Anything, mock.Anything).Return(stream, nil)
 	aggregate := &MockAggregate{}
 	aggregate.On("AggregateName").Return("testAggregate")
-	aggregate.On("Version").Return(0).Once()
-	aggregate.On("Version").Return(1).Once()
-	aggregate.On("Version").Return(2).Once()
-	aggregate.On("Version").Return(3)
+	aggregate.On("Version").Return(0).Once() //load
+	aggregate.On("Version").Return(0).Once() //check version
+	aggregate.On("Version").Return(1).Once() //check version
+	aggregate.On("Version").Return(2).Once() //check version
+	aggregate.On("Version").Return(3)        //final version
 	aggregate.On("Apply", mock.Anything).Return(nil)
 	aggregate.On("incrementVersion")
 	aggregateFactory := func(ctx AggregateContext) Aggregate {
@@ -278,7 +283,7 @@ func TestAggregateRepository_SaveWithErrorWriteEvent(t *testing.T) {
 	storeError := errors.New("store write error")
 	event := &eventA{}
 	events := []Event{event}
-	aggregate := &MockAggregateComposition{}
+	aggregate := &MockAggregate{}
 	aggregate.On("AggregateName").Return("testAggregate")
 	aggregate.On("getUncommittedEvents").Return(events)
 
@@ -301,7 +306,7 @@ func TestAggregateRepository_SaveWithErrorWriteEvent(t *testing.T) {
 
 // success paths
 func TestAggregateRepository_SaveWithNoEvents(t *testing.T) {
-	aggregate := &MockAggregateComposition{}
+	aggregate := &MockAggregate{}
 	aggregate.On("getUncommittedEvents").Return(nil)
 	store := &MockEventStore{}
 
@@ -319,7 +324,7 @@ func TestAggregateRepository_SaveWithNoEvents(t *testing.T) {
 func TestAggregateRepository_SaveWithOneEvent(t *testing.T) {
 	event := &eventA{}
 	events := []Event{event}
-	aggregate := &MockAggregateComposition{}
+	aggregate := &MockAggregate{}
 	aggregate.On("AggregateName").Return("testAggregate")
 	aggregate.On("getUncommittedEvents").Return(events)
 	aggregate.On("clearUncommittedEvents")
@@ -342,7 +347,7 @@ func TestAggregateRepository_SaveWithOneEvent(t *testing.T) {
 func TestAggregateRepository_SaveWithMultipleEvents(t *testing.T) {
 	event := &eventA{}
 	events := []Event{event, *event, event}
-	aggregate := &MockAggregateComposition{}
+	aggregate := &MockAggregate{}
 	aggregate.On("AggregateName").Return("testAggregate")
 	aggregate.On("getUncommittedEvents").Return(events)
 	aggregate.On("clearUncommittedEvents")
@@ -372,7 +377,7 @@ func TestAggregateRepository_SaveTriggersPublishEventHook(t *testing.T) {
 
 	event := &eventA{}
 	events := []Event{event}
-	aggregate := &MockAggregateComposition{}
+	aggregate := &MockAggregate{}
 	aggregate.On("AggregateName").Return("testAggregate")
 	aggregate.On("getUncommittedEvents").Return(events)
 	aggregate.On("clearUncommittedEvents")

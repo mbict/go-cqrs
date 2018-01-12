@@ -35,6 +35,11 @@ func (_m *MockAggregateContext) incrementVersion() {
 	_m.Called()
 }
 
+// setVersion provides a mock function with given fields: _a0
+func (_m *MockAggregateContext) setVersion(_a0 int) {
+	_m.Called(_a0)
+}
+
 // AggregateId provides a mock function with given fields:
 func (_m *MockAggregateContext) AggregateId() uuid.UUID {
 	ret := _m.Called()

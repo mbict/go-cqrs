@@ -56,7 +56,7 @@ func eventAFactory(id uuid.UUID, version int, occurredAt time.Time) Event {
 }
 
 type aggregateA struct {
-	ctx AggregateContext
+	AggregateContext
 }
 
 func (*aggregateA) AggregateName() string {
@@ -73,6 +73,6 @@ func (*aggregateA) Apply(event Event) error {
 
 func aggregateAFactory(ctx AggregateContext) Aggregate {
 	return &aggregateA{
-		ctx: ctx,
+		AggregateContext: ctx,
 	}
 }

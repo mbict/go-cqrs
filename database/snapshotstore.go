@@ -31,7 +31,7 @@ func (s *snapshotStore) Load(aggregateId uuid.UUID, aggregate cqrs.Aggregate) (i
 	return snapshotVersion, json.Unmarshal(jsonData, aggregate)
 }
 
-func (s *snapshotStore) Write(aggregate cqrs.AggregateComposition) error {
+func (s *snapshotStore) Write(aggregate cqrs.Aggregate) error {
 	payload, err := json.Marshal(aggregate)
 	if err != nil {
 		return err
@@ -73,7 +73,7 @@ func NewPostgresSnapshotStore(db *sql.DB) cqrs.SnapshotStore {
 		log.Fatal(err)
 	}
 
-	selectStmt, err := db.Prepare("SELECT data, version FROM events WHERE aggregate_id = $1 AND aggregate_type = $2 ORDER BY version ASC LIMIT 1")
+	selectStmt, err := db.Prepare("SELECT data, version FROM snapshots WHERE aggregate_id = $1 AND aggregate_type = $2 ORDER BY version DESC LIMIT 1")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -98,7 +98,7 @@ func NewMySQLSnapshotStore(db *sql.DB) cqrs.SnapshotStore {
 		log.Fatal(err)
 	}
 
-	selectStmt, err := db.Prepare("SELECT data, version FROM events WHERE aggregate_id = ? AND aggregate_type = ? ORDER BY version DESC LIMIT 1")
+	selectStmt, err := db.Prepare("SELECT data, version FROM snapshots WHERE aggregate_id = ? AND aggregate_type = ? ORDER BY version DESC LIMIT 1")
 	if err != nil {
 		log.Fatal(err)
 	}

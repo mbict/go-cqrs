@@ -17,6 +17,9 @@ type AggregateContext interface {
 	// incrementVersion increments the aggregate version.
 	incrementVersion()
 
+	// setVersion is an internal function to set the aggregate version.
+	setVersion(int)
+
 	// getUncommittedEvents gets all uncommitted events ready for storing.
 	getUncommittedEvents() []Event
 
@@ -52,6 +55,10 @@ func (a *aggregateContext) StoreEvent(event Event) {
 
 func (a *aggregateContext) incrementVersion() {
 	a.version++
+}
+
+func (a *aggregateContext) setVersion(version int) {
+	a.version = version
 }
 
 func (a *aggregateContext) getUncommittedEvents() []Event {

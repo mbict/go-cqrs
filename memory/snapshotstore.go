@@ -30,7 +30,7 @@ func (s *snapshotStore) Load(aggregateId uuid.UUID, aggregate cqrs.Aggregate) (i
 	return snapshot.version, json.Unmarshal(snapshot.data, aggregate)
 }
 
-func (s *snapshotStore) Write(aggregate cqrs.AggregateComposition) error {
+func (s *snapshotStore) Write(aggregate cqrs.Aggregate) error {
 	data, err := json.Marshal(aggregate.(cqrs.Aggregate))
 	if err != nil {
 		return err

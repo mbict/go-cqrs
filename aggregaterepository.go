@@ -12,15 +12,15 @@ type PublishEventFunc func(event Event)
 
 // AggregateBuilder is the builder function to create new aggregate compositions.
 // This could be used to introduce new strategies how to build a aggregate like the snapshot implementation
-type AggregateBuilder func(aggregateId uuid.UUID) (AggregateComposition, error)
+type AggregateBuilder func(aggregateId uuid.UUID) (Aggregate, error)
 
 // AggregateRepository is the interface that a specific aggregate repositories should implement.
 type AggregateRepository interface {
 	//Loads an aggregate of the given type and ID
-	Load(aggregateId uuid.UUID) (AggregateComposition, error)
+	Load(aggregateId uuid.UUID) (Aggregate, error)
 
 	//Saves the aggregate.
-	Save(aggregate AggregateComposition) error
+	Save(aggregate Aggregate) error
 }
 
 type aggregateRepository struct {
@@ -31,22 +31,17 @@ type aggregateRepository struct {
 }
 
 func DefaultAggregateBuilder(factory AggregateFactoryFunc) AggregateBuilder {
-	return func(aggregateId uuid.UUID) (AggregateComposition, error) {
+	return func(aggregateId uuid.UUID) (Aggregate, error) {
 		context := NewAggregateContext(aggregateId, 0)
-		aggregateComposition := &aggregateContextComposition{
-			AggregateContext: context,
-		}
-		aggregate := factory(aggregateComposition)
+		aggregate := factory(context)
 		if aggregate == nil {
 			return nil, nil
 		}
-
-		aggregateComposition.Aggregate = aggregate
-		return aggregateComposition, nil
+		return aggregate, nil
 	}
 }
 
-func (r *aggregateRepository) Load(aggregateId uuid.UUID) (AggregateComposition, error) {
+func (r *aggregateRepository) Load(aggregateId uuid.UUID) (Aggregate, error) {
 	aggregate, err := r.aggregateBuilder(aggregateId)
 	if err != nil {
 		return nil, err
@@ -80,7 +75,7 @@ func (r *aggregateRepository) Load(aggregateId uuid.UUID) (AggregateComposition,
 	return aggregate, nil
 }
 
-func (r *aggregateRepository) Save(aggregate AggregateComposition) error {
+func (r *aggregateRepository) Save(aggregate Aggregate) error {
 	events := aggregate.getUncommittedEvents()
 	if len(events) == 0 {
 		return nil

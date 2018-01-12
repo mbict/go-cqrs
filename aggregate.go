@@ -1,6 +1,8 @@
 package cqrs
 
 type Aggregate interface {
+	AggregateContext
+
 	// AggregateName returns the type name of the aggregate.
 	AggregateName() string
 

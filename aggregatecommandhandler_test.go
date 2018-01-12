@@ -10,7 +10,7 @@ import (
 func TestAggregateCommandHandler(t *testing.T) {
 	command := &commandA{}
 
-	aggregate := &MockAggregateComposition{}
+	aggregate := &MockAggregateHandlesCommands{}
 	aggregate.On("HandleCommand", command).Return(nil)
 
 	repo := &MockAggregateRepository{}
@@ -98,7 +98,7 @@ func TestAggregateCommandHandler_RepositorySaveError(t *testing.T) {
 	command := &commandA{}
 	repoError := errors.New("repo error")
 
-	aggregate := &MockAggregateComposition{}
+	aggregate := &MockAggregateHandlesCommands{}
 	aggregate.On("HandleCommand", command).Return(nil)
 
 	repo := &MockAggregateRepository{}
@@ -126,7 +126,7 @@ func TestAggregateCommandHandler_CommandLogicError(t *testing.T) {
 	command := &commandA{}
 	commandError := errors.New("command error")
 
-	aggregate := &MockAggregateComposition{}
+	aggregate := &MockAggregateHandlesCommands{}
 	aggregate.On("HandleCommand", command).Return(commandError)
 
 	repo := &MockAggregateRepository{}
@@ -152,7 +152,7 @@ func TestAggregateCommandHandler_ValidateError(t *testing.T) {
 	validate := &MockValidate{}
 	validate.On("Validate").Return(validateError)
 	command := &commandAWithValidate{ValidateMock: validate}
-	aggregate := &MockAggregateComposition{}
+	aggregate := &MockAggregate{}
 	aggregate.On("Validate").Return(validateError)
 	repo := &MockAggregateRepository{}
 	repo.On("Load", Anything).Return(aggregate, nil)

@@ -47,9 +47,7 @@ func (r *DomainAggregateRepository) RepositoryFor(aggregateName string) Aggregat
 //Loads an aggregate of the given type and ID
 func (r *DomainAggregateRepository) Load(aggregateType string, aggregateId uuid.UUID) (Aggregate, error) {
 	context := NewAggregateContext(aggregateId, 0)
-	aggregate := newAggregateContextComposition(context, func(ctx AggregateContext) Aggregate {
-		return r.aggregateFactory.MakeAggregate(aggregateType, context)
-	})
+	aggregate := r.aggregateFactory.MakeAggregate(aggregateType, context)
 
 	if aggregate == nil {
 		return nil, fmt.Errorf("the repository has no aggregate factory registered for aggregate type: %s", aggregateType)
@@ -83,7 +81,7 @@ func (r *DomainAggregateRepository) Load(aggregateType string, aggregateId uuid.
 }
 
 //Save will save all the events to the event store.
-func (r *DomainAggregateRepository) Save(aggregate AggregateComposition) error {
+func (r *DomainAggregateRepository) Save(aggregate Aggregate) error {
 	for _, event := range aggregate.getUncommittedEvents() {
 		if err := r.eventStore.WriteEvent(aggregate.AggregateName(), event); err != nil {
 			return err
