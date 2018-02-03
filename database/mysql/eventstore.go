@@ -25,7 +25,7 @@ func NewDatabaseEventStore(db *sql.DB) cqrs.EventStore {
 		log.Fatal(err)
 	}
 
-	selectStmt, err := db.Prepare("SELECT aggregate_id, type, data, version, created FROM events WHERE aggregate_id = ? AND aggregate_type = ? version > ? ORDER BY version ASC")
+	selectStmt, err := db.Prepare("SELECT aggregate_id, type, data, version, created FROM events WHERE aggregate_id = ? AND aggregate_type = ? AND version > ? ORDER BY version ASC")
 	if err != nil {
 		log.Fatal(err)
 	}
