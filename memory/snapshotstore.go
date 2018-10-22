@@ -1,9 +1,9 @@
 package memory
 
 import (
+	"encoding/json"
 	"github.com/mbict/go-cqrs"
 	"github.com/satori/go.uuid"
-	"github.com/square/go-jose/json"
 	"sync"
 )
 

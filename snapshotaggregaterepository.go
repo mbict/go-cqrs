@@ -29,6 +29,10 @@ func (c *aggregateSnapshotComposition) Version() int {
 	return c.aggregate.Version()
 }
 
+func (c *aggregateSnapshotComposition) OriginalVersion() int {
+	return c.aggregate.OriginalVersion()
+}
+
 func (c *aggregateSnapshotComposition) StoreEvent(e Event) {
 	c.aggregate.StoreEvent(e)
 }

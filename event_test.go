@@ -9,7 +9,7 @@ func TestNewEventBaseFromAggregate(t *testing.T) {
 	id := uuid.Must(uuid.NewV4())
 	agg := &MockAggregateContext{}
 	agg.On("AggregateId").Return(id)
-	agg.On("Version").Return(10)
+	agg.On("OriginalVersion").Return(10)
 	agg.On("getUncommittedEvents").Return(nil)
 
 	eventBase := NewEventBaseFromAggregate(agg)

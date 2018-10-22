@@ -40,7 +40,7 @@ func NewEventBase(id uuid.UUID, version int, occurredAt time.Time) EventBase {
 func NewEventBaseFromAggregate(aggregate AggregateContext) EventBase {
 	return &eventBase{
 		id:         aggregate.AggregateId(),
-		version:    aggregate.Version() + len(aggregate.getUncommittedEvents()) + 1,
+		version:    aggregate.OriginalVersion() + len(aggregate.getUncommittedEvents()) + 1,
 		occurredAt: time.Now(),
 	}
 }

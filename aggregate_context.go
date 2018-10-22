@@ -11,6 +11,9 @@ type AggregateContext interface {
 	// Version returns the version of the aggregate.
 	Version() int
 
+	// OriginalVersion returns the version of the aggregate without the current event modifications.
+	OriginalVersion() int
+
 	// StoreEvent stores an event as uncommitted event.
 	StoreEvent(Event)
 
@@ -46,6 +49,10 @@ func (a *aggregateContext) AggregateId() uuid.UUID {
 }
 
 func (a *aggregateContext) Version() int {
+	return a.version + len(a.events)
+}
+
+func (a *aggregateContext) OriginalVersion() int {
 	return a.version
 }
 

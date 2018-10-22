@@ -19,13 +19,47 @@ func TestAggregateContext_incrementVersion(t *testing.T) {
 	ctx := NewAggregateContext(id, 123)
 
 	if ctx.Version() != 123 {
-		t.Errorf("expected version %d but got %d", 0, ctx.Version())
+		t.Errorf("expected version %d but got %d", 123, ctx.Version())
+	}
+
+	if ctx.OriginalVersion() != 123 {
+		t.Errorf("expected original version %d but got %d", 123, ctx.OriginalVersion())
 	}
 
 	ctx.incrementVersion()
 
 	if ctx.Version() != 124 {
-		t.Errorf("expected version %d but got %d", 1, ctx.Version())
+		t.Errorf("expected version %d but got %d", 123, ctx.Version())
+	}
+
+	if ctx.OriginalVersion() != 124 {
+		t.Errorf("expected original version %d but got %d", 123, ctx.OriginalVersion())
+	}
+}
+
+func TestAggregateContext_OrignalVersionShoulReturnCommitedVersion(t *testing.T) {
+	id := uuid.Must(uuid.NewV4())
+	ctx := NewAggregateContext(id, 123)
+
+	if ctx.Version() != 123 {
+		t.Errorf("expected version %d but got %d", 123, ctx.Version())
+	}
+
+	if ctx.OriginalVersion() != 123 {
+		t.Errorf("expected original version %d but got %d", 123, ctx.OriginalVersion())
+	}
+
+	ctx.StoreEvent(
+		eventA{
+			NewEventBaseFromAggregate(ctx),
+		})
+
+	if ctx.OriginalVersion() != 123 {
+		t.Errorf("expected original version %d but got %d", 123, ctx.OriginalVersion())
+	}
+
+	if ctx.Version() != 124 {
+		t.Errorf("expected version %d but got %d", 124, ctx.Version())
 	}
 }
 
