@@ -29,11 +29,11 @@ func newMemoryEventStream(events []cqrs.Event) cqrs.EventStream {
 	}
 }
 
-func (s *EventStream) EventName() string {
+func (s *EventStream) EventType() cqrs.EventType {
 	if s.currentEvent == nil {
 		return ""
 	}
-	return s.currentEvent.EventName()
+	return s.currentEvent.EventType()
 }
 
 func (s *EventStream) AggregateId() uuid.UUID {
@@ -52,11 +52,11 @@ func (s *EventStream) Version() int {
 
 var emptyTime = time.Time{}
 
-func (s *EventStream) OccurredAt() time.Time {
+func (s *EventStream) Timestamp() time.Time {
 	if s.currentEvent == nil {
 		return emptyTime
 	}
-	return s.currentEvent.OccurredAt()
+	return s.currentEvent.Timestamp()
 }
 
 func (s *EventStream) Next() bool {
@@ -68,9 +68,9 @@ func (s *EventStream) Error() error {
 	return nil
 }
 
-func (s *EventStream) Scan(event cqrs.Event) error {
+func (s *EventStream) Scan(event cqrs.EventData) error {
 	if s.currentEvent == nil {
 		return ErrNoEventData
 	}
-	return copier.Copy(event, s.currentEvent)
+	return copier.Copy(event, s.currentEvent.Data())
 }

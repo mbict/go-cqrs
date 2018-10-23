@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/mbict/go-cqrs"
-	"github.com/satori/go.uuid"
 )
 
 //factory for the aggregate
@@ -13,30 +12,24 @@ func inventoryItemAggregateFactory(context cqrs.AggregateContext) cqrs.Aggregate
 }
 
 //factories for the events
-func inventoryItemDeactivatedFactory(id uuid.UUID, version int) cqrs.Event {
-	return &InventoryItemDeactivated{
-		EventBase: cqrs.NewEventBase(id, version),
-	}
+func inventoryItemDeactivatedFactory() cqrs.EventData {
+	return &InventoryItemDeactivated{}
 }
-func inventoryItemCreatedFactory(id uuid.UUID, version int) cqrs.Event {
-	return &InventoryItemCreated{
-		EventBase: cqrs.NewEventBase(id, version),
-	}
+
+func inventoryItemCreatedFactory() cqrs.EventData {
+	return &InventoryItemCreated{}
 }
-func inventoryItemRenamedFactory(id uuid.UUID, version int) cqrs.Event {
-	return &InventoryItemRenamed{
-		EventBase: cqrs.NewEventBase(id, version),
-	}
+
+func inventoryItemRenamedFactory() cqrs.EventData {
+	return &InventoryItemRenamed{}
 }
-func itemsCheckedInToInventoryFactory(id uuid.UUID, version int) cqrs.Event {
-	return &ItemsCheckedInToInventory{
-		EventBase: cqrs.NewEventBase(id, version),
-	}
+
+func itemsCheckedInToInventoryFactory() cqrs.EventData {
+	return &ItemsCheckedInToInventory{}
 }
-func itemsRemovedFromInventoryFactory(id uuid.UUID, version int) cqrs.Event {
-	return &ItemsRemovedFromInventory{
-		EventBase: cqrs.NewEventBase(id, version),
-	}
+
+func itemsRemovedFromInventoryFactory() cqrs.EventData {
+	return &ItemsRemovedFromInventory{}
 }
 
 //event factory

@@ -33,7 +33,7 @@ func (c *aggregateSnapshotComposition) OriginalVersion() int {
 	return c.aggregate.OriginalVersion()
 }
 
-func (c *aggregateSnapshotComposition) StoreEvent(e Event) {
+func (c *aggregateSnapshotComposition) StoreEvent(e EventData) {
 	c.aggregate.StoreEvent(e)
 }
 
@@ -118,16 +118,14 @@ func NewSnapshotAggregateRepository(
 	snapshotStore SnapshotStore,
 	differenceOffset int,
 	aggregateBuilder AggregateBuilder,
-	abstractEventFactory EventFactory,
-	publishEventHooks ...PublishEventFunc) AggregateRepository {
+	eventFactory EventFactory) AggregateRepository {
 	return &snapshotAggregateRepository{
 		snapshotStore:    snapshotStore,
 		differenceOffset: differenceOffset,
 		AggregateRepository: &aggregateRepository{
-			eventStore:           eventStore,
-			aggregateBuilder:     aggregateBuilder,
-			abstractEventFactory: abstractEventFactory,
-			publishEventHooks:    publishEventHooks,
+			eventStore:       eventStore,
+			aggregateBuilder: aggregateBuilder,
+			eventFactory:     eventFactory,
 		},
 	}
 }

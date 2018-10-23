@@ -29,12 +29,22 @@ func init() {
 
 	// hook to eventbus when successful store of event to the eventstore we
 	// will publish the event to the in memory eventbus.
-	eventbusNotifyHook := func(event cqrs.Event) {
-		eventBus.Publish(event)
-	}
+	eventPublisher := cqrs.EventPublisherFunc(func(events ...cqrs.Event) error {
+		for _, event := range events {
+			if err := eventBus.Publish(event.(eventbus.Event)); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 
 	// initilaze inmemory eventbus and aggregateRepository for the InventoryItemAggregate
-	eventStore := memory.NewMemoryEventStore()
+	var eventStore cqrs.EventStore
+	{
+		eventStore = memory.NewMemoryEventStore()
+		eventStore = cqrs.NewEventPublishingEventStore(eventPublisher, eventStore)
+	}
+
 	//aggregateRepository := cqrs.NewAggregateRepository(eventStore, cqrs.DefaultAggregateBuilder(inventoryItemAggregateFactory), eventFactory, eventbusNotifyHook)
 
 	//snapshot version of the repository
@@ -44,8 +54,7 @@ func init() {
 		snapshotStore,
 		2, //create a snapshot everytime we differ 2 events or more
 		cqrs.SnapshotAggregateBuilder(inventoryItemAggregateFactory, snapshotStore),
-		eventFactory,
-		eventbusNotifyHook)
+		eventFactory)
 
 	// aggregate command handler is the command handler who is responsible for
 	// - creating the aggregate
@@ -74,16 +83,16 @@ func init() {
 	inventoryItemProjector := NewInventoryProjector(itemRepository)
 
 	// subscribe to the in memory eventbus, to all events
-	eventBus.Subscribe(inventoryItemProjector)
+	eventBus.Subscribe(cqrs.EventbusWrapper(inventoryItemProjector))
 
 	// subscribe to the in memory eventbus to only these specific events
-	eventBus.Subscribe(uniqueInventoryNamesProjector, InventoryItemCreated{}, InventoryItemRenamed{}, InventoryItemDeactivated{})
+	eventBus.Subscribe(cqrs.EventbusWrapper(uniqueInventoryNamesProjector), uniqueInventoryNamesProjector.HandlesEvent()...)
 }
 
 //rough example
 func main() {
 	// the unique id of the first inventoryItem
-	idFirstItem := uuid.NewV4()
+	idFirstItem := uuid.Must(uuid.NewV4())
 
 	//we want to create a new inventory item
 	commandCreate := CreateInventoryItem{
@@ -142,7 +151,7 @@ func main() {
 	fmt.Printf("[SUCCESS] inventory item item after checking in items:\n%#v\n", item)
 
 	//now lets test the middleware if the unique names work
-	newId := uuid.NewV4()
+	newId := uuid.Must(uuid.NewV4())
 	createCommandWithDuplicateName := CreateInventoryItem{
 		InventoryItemId: newId,
 		Name:            "duracell battery",

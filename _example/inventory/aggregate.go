@@ -45,7 +45,7 @@ func (a *InventoryItemAggregate) HandleCommand(command cqrs.Command) error {
 }
 
 func (a *InventoryItemAggregate) Apply(event cqrs.Event) error {
-	switch e := event.(type) {
+	switch e := event.Data().(type) {
 	case InventoryItemCreated:
 		a.Activated = true
 	case InventoryItemRenamed:
@@ -70,21 +70,17 @@ func (a *InventoryItemAggregate) create(name string) error {
 		return ErrAlreadyCreated
 	}
 
-	event := InventoryItemCreated{
-		EventBase: cqrs.NewEventBaseFromAggregate(a),
-		Name:      name,
-	}
-	a.StoreEvent(event)
+	a.StoreEvent(InventoryItemCreated{
+		Name: name,
+	})
 
 	return nil
 }
 
 func (a *InventoryItemAggregate) rename(name string) error {
-	event := InventoryItemRenamed{
-		EventBase: cqrs.NewEventBaseFromAggregate(a),
-		NewName:   name,
-	}
-	a.StoreEvent(event)
+	a.StoreEvent(InventoryItemRenamed{
+		NewName: name,
+	})
 
 	return nil
 }
@@ -95,20 +91,15 @@ func (a *InventoryItemAggregate) deactivate() error {
 		return ErrDeactivate
 	}
 
-	event := InventoryItemDeactivated{
-		EventBase: cqrs.NewEventBaseFromAggregate(a),
-	}
-	a.StoreEvent(event)
+	a.StoreEvent(InventoryItemDeactivated{})
 
 	return nil
 }
 
 func (a *InventoryItemAggregate) checkinItems(count int) error {
-	event := ItemsCheckedInToInventory{
-		EventBase: cqrs.NewEventBaseFromAggregate(a),
-		Count:     count,
-	}
-	a.StoreEvent(event)
+	a.StoreEvent(ItemsCheckedInToInventory{
+		Count: count,
+	})
 
 	return nil
 }
@@ -118,11 +109,9 @@ func (a *InventoryItemAggregate) removeItems(count int) error {
 		return ErrNotEnoughInventoryItems
 	}
 
-	event := ItemsRemovedFromInventory{
-		EventBase: cqrs.NewEventBaseFromAggregate(a),
-		Count:     count,
-	}
-	a.StoreEvent(event)
+	a.StoreEvent(ItemsRemovedFromInventory{
+		Count: count,
+	})
 
 	return nil
 }

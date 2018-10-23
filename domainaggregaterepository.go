@@ -3,7 +3,6 @@ package cqrs
 import (
 	"errors"
 	"fmt"
-	"github.com/mbict/go-eventbus"
 	"github.com/satori/go.uuid"
 )
 
@@ -21,23 +20,15 @@ type DomainAggregateRepository struct {
 	eventStore       EventStore
 	eventFactory     EventFactory
 	aggregateFactory AggregateFactory
-	eventBus         eventbus.EventBus
 }
 
 //NewRepository instantiates a new repository resolver who accepts a stream resolver
 func NewCommonDomainRepository(eventStore EventStore, eventFactory EventFactory, aggregateFactory AggregateFactory) *DomainAggregateRepository {
 	return &DomainAggregateRepository{
-		eventBus:         nil,
 		eventStore:       eventStore,
 		eventFactory:     eventFactory,
 		aggregateFactory: aggregateFactory,
 	}
-}
-
-//SetEventBus will set which eventbus for publishing new events
-//if set to nil no events will be published during a save action
-func (r *DomainAggregateRepository) SetEventBus(eventBus eventbus.EventBus) {
-	r.eventBus = eventBus
 }
 
 func (r *DomainAggregateRepository) RepositoryFor(aggregateName string) AggregateRepository {
@@ -59,22 +50,25 @@ func (r *DomainAggregateRepository) Load(aggregateType string, aggregateId uuid.
 	}
 
 	for stream != nil && stream.Next() {
-
-		event := r.eventFactory.MakeEvent(stream.EventName(), aggregateId, stream.Version(), stream.OccurredAt())
-		if event == nil {
-			return nil, fmt.Errorf("the repository has no event factory registered for event type: %s", stream.EventName())
-		}
-
 		if stream.Version()-1 != aggregate.Version() {
 			return nil, fmt.Errorf("event version (%d) mismatch with Aggregate next Version (%d)", stream.Version(), aggregate.Version()+1)
 		}
 
-		err = stream.Scan(event)
-		if err != nil {
-			return nil, fmt.Errorf("the repository cannot populate event data from stream for event type: %s", stream.EventName())
+		eventData := r.eventFactory.MakeEvent(stream.EventType())
+		if eventData == nil {
+			return nil, fmt.Errorf("the repository has no event factory registered for event type: %s", stream.EventType())
 		}
 
+		err = stream.Scan(eventData)
+		if err != nil {
+			return nil, fmt.Errorf("the repository cannot populate event data from stream for event type: %s, with error `%s`", stream.EventType(), err)
+		}
+
+		//create the event with metadata
+		event := NewEvent(aggregateId, stream.Version(), stream.Timestamp(), eventData)
+
 		aggregate.Apply(event)
+		aggregate.incrementVersion()
 	}
 
 	return aggregate, nil
@@ -85,12 +79,6 @@ func (r *DomainAggregateRepository) Save(aggregate Aggregate) error {
 	for _, event := range aggregate.getUncommittedEvents() {
 		if err := r.eventStore.WriteEvent(aggregate.AggregateName(), event); err != nil {
 			return err
-		}
-
-		aggregate.Apply(event)
-
-		if r.eventBus != nil {
-			r.eventBus.Publish(event)
 		}
 	}
 	aggregate.clearUncommittedEvents()

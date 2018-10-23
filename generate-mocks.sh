@@ -7,4 +7,3 @@ mockery -name Validate -testonly -inpkg -case=underscore
 mockery -name EventFactory -testonly -inpkg -case=underscore
 mockery -name EventStore -testonly -inpkg -case=underscore
 mockery -name EventStream -testonly -inpkg -case=underscore
-mockery -name Event -testonly -inpkg -case=underscore

@@ -2,9 +2,7 @@ package cqrs
 
 import (
 	"fmt"
-	"github.com/satori/go.uuid"
 	"reflect"
-	"time"
 )
 
 type ErrorEventFactoryAlreadyRegistered string
@@ -20,42 +18,42 @@ func (e ErrorEventFactoryNotReturningPointer) Error() string {
 }
 
 // EventFactoryFunc should create an Event and return the pointer to the instance.
-type EventFactoryFunc func(uuid.UUID, int, time.Time) Event
+type EventFactoryFunc func() EventData
 
 // EventFactory is the interface that an event store should implement.
 // An event factory returns instances of an event given the event type as a string.
 type EventFactory interface {
-	MakeEvent(string, uuid.UUID, int, time.Time) Event
+	MakeEvent(EventType) EventData
 }
 
 // CallbackEventFactory uses callback/delegate functions to instantiate event instances
 // given the name of the event type as a string.
 type CallbackEventFactory struct {
-	eventFactories map[string]EventFactoryFunc
+	eventFactories map[EventType]EventFactoryFunc
 }
 
 // NewCallbackEventFactory constructs a new CallbackEventFactory
 func NewCallbackEventFactory() *CallbackEventFactory {
 	return &CallbackEventFactory{
-		eventFactories: make(map[string]EventFactoryFunc),
+		eventFactories: make(map[EventType]EventFactoryFunc),
 	}
 }
 
 // RegisterCallback registers a delegate that will return an event instance given
 // an event type name as a string.
 func (t *CallbackEventFactory) RegisterCallback(callback EventFactoryFunc) error {
-	e := callback(uuid.Must(uuid.NewV4()), 0, time.Now())
+	e := callback()
 
 	rv := reflect.ValueOf(e)
 	if rv.Kind() != reflect.Ptr || rv.IsNil() {
 		return ErrorEventFactoryNotReturningPointer(rv.Type().Name())
 	}
 
-	typeName := e.EventName()
-	if _, ok := t.eventFactories[typeName]; ok {
-		return ErrorEventFactoryAlreadyRegistered(typeName)
+	eventType := e.EventType()
+	if _, ok := t.eventFactories[eventType]; ok {
+		return ErrorEventFactoryAlreadyRegistered(eventType)
 	}
-	t.eventFactories[typeName] = callback
+	t.eventFactories[eventType] = callback
 	return nil
 }
 
@@ -63,9 +61,9 @@ func (t *CallbackEventFactory) RegisterCallback(callback EventFactoryFunc) error
 //
 // An appropriate delegate must be registered for the event type.
 // If an appropriate delegate is not registered, the method will return nil.
-func (t *CallbackEventFactory) MakeEvent(typeName string, aggregateId uuid.UUID, version int, occurredAt time.Time) Event {
-	if f, ok := t.eventFactories[typeName]; ok {
-		return f(aggregateId, version, occurredAt)
+func (t *CallbackEventFactory) MakeEvent(eventType EventType) EventData {
+	if f, ok := t.eventFactories[eventType]; ok {
+		return f()
 	}
 	return nil
 }

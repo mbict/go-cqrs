@@ -15,7 +15,7 @@ type AggregateContext interface {
 	OriginalVersion() int
 
 	// StoreEvent stores an event as uncommitted event.
-	StoreEvent(Event)
+	StoreEvent(EventData)
 
 	// incrementVersion increments the aggregate version.
 	incrementVersion()
@@ -56,7 +56,8 @@ func (a *aggregateContext) OriginalVersion() int {
 	return a.version
 }
 
-func (a *aggregateContext) StoreEvent(event Event) {
+func (a *aggregateContext) StoreEvent(eventData EventData) {
+	event := NewEventFromAggregate(a, eventData)
 	a.events = append(a.events, event)
 }
 

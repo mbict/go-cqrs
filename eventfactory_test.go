@@ -1,9 +1,7 @@
 package cqrs
 
 import (
-	"github.com/satori/go.uuid"
 	"testing"
-	"time"
 )
 
 func TestCallbackEventFactoryMake(t *testing.T) {
@@ -13,27 +11,13 @@ func TestCallbackEventFactoryMake(t *testing.T) {
 		t.Errorf("expected a nil error but got error : %v", err)
 	}
 
-	id := uuid.Must(uuid.NewV4())
-	occurredAt := time.Now()
-	event := f.MakeEvent("event.a", id, 1, occurredAt)
+	event := f.MakeEvent("event:a")
 	if event == nil {
 		t.Fatal("expected the constructed event but got nil instead")
 	}
 
-	if event.EventName() != "event.a" {
-		t.Errorf("expected an event with name `%v` but got `%v`", "event.a", event.EventName())
-	}
-
-	if !uuid.Equal(event.AggregateId(), id) {
-		t.Errorf("expected an event with aggregate id `%v` but got `%v`", id, event.AggregateId())
-	}
-
-	if event.Version() != 1 {
-		t.Errorf("expected an event with version `%v` but got `%v`", 1, event.Version())
-	}
-
-	if event.OccurredAt().Equal(occurredAt) == false {
-		t.Errorf("expected an event with occurred at `%v` but got `%v`", occurredAt, event.OccurredAt())
+	if string(event.EventType()) != "event:a" {
+		t.Errorf("expected an event with name `%v` but got `%v`", "event.a", event.EventType())
 	}
 
 	if _, ok := event.(*eventA); !ok {
@@ -44,7 +28,7 @@ func TestCallbackEventFactoryMake(t *testing.T) {
 func TestCallbackEventFactoryMakeWithUnknownEvent(t *testing.T) {
 	f := NewCallbackEventFactory()
 
-	event := f.MakeEvent("this.event.is.not.registered", uuid.Must(uuid.NewV4()), 1, time.Now())
+	event := f.MakeEvent("this.event.is.not.registered")
 	if event != nil {
 		t.Fatalf("expected a nil response but got an event instead `%T`", event)
 	}
@@ -70,7 +54,7 @@ func TestCallbackEventFactoryDuplicateRegister(t *testing.T) {
 func TestCallbackEventFactoryNonPointerEventRegister(t *testing.T) {
 	f := NewCallbackEventFactory()
 
-	badEventFactory := func(id uuid.UUID, version int, occurredAt time.Time) Event {
+	badEventFactory := func() EventData {
 		return eventB{}
 	}
 

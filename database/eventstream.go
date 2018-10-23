@@ -19,7 +19,7 @@ type EventStream struct {
 	err         error
 	version     int
 	aggregateId uuid.UUID
-	eventType   string
+	eventType   cqrs.EventType
 	data        sql.RawBytes
 	timestamp   time.Time
 }
@@ -34,7 +34,7 @@ func (s *EventStream) AggregateId() uuid.UUID {
 	return s.aggregateId
 }
 
-func (s *EventStream) EventName() string {
+func (s *EventStream) EventType() cqrs.EventType {
 	return s.eventType
 }
 
@@ -42,7 +42,7 @@ func (s *EventStream) Version() int {
 	return s.version
 }
 
-func (s *EventStream) OccurredAt() time.Time {
+func (s *EventStream) Timestamp() time.Time {
 	return s.timestamp
 }
 
@@ -69,7 +69,7 @@ func (s *EventStream) Error() error {
 	return s.err
 }
 
-func (s *EventStream) Scan(event cqrs.Event) error {
+func (s *EventStream) Scan(event cqrs.EventData) error {
 	if s.version == -1 || s.data == nil {
 		return ErrNoEventData
 	}

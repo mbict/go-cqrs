@@ -1,6 +1,8 @@
 package main
 
-import "github.com/mbict/go-eventbus"
+import (
+	"github.com/mbict/go-cqrs"
+)
 
 //InventoryNameProjector is used for checking the uniqueness of the inventory name in
 //the command middleware
@@ -8,24 +10,33 @@ type InventoryNameProjector struct {
 	repository InventoryNameRepository
 }
 
-func (p *InventoryNameProjector) Handle(event eventbus.Event) {
-	switch e := event.(type) {
+func (p *InventoryNameProjector) HandlesEvent() []cqrs.EventType {
+	return []cqrs.EventType{
+		ItemCreated,
+		ItemRenamed,
+		ItemDeactivated,
+	}
+}
+
+func (p *InventoryNameProjector) Handle(event cqrs.Event) error {
+	switch data := event.Data().(type) {
 	case InventoryItemCreated:
 		item := &InventoryName{
-			Id:   e.AggregateId(),
-			Name: e.Name,
+			Id:   event.AggregateId(),
+			Name: data.Name,
 		}
 		p.repository.Save(item)
 
 	case InventoryItemRenamed:
-		if item := p.repository.FindById(e.AggregateId()); item != nil {
-			item.Name = e.NewName
+		if item := p.repository.FindById(event.AggregateId()); item != nil {
+			item.Name = data.NewName
 			p.repository.Save(item)
 		}
 
 	case InventoryItemDeactivated:
-		p.repository.Delete(e.AggregateId())
+		p.repository.Delete(event.AggregateId())
 	}
+	return nil
 }
 
 func NewInventoryNameProjector(repository InventoryNameRepository) *InventoryNameProjector {
@@ -38,36 +49,37 @@ type InventoryProjector struct {
 	repository InventoryItemRepository
 }
 
-func (p *InventoryProjector) Handle(event eventbus.Event) {
-	switch e := event.(type) {
+func (p *InventoryProjector) Handle(event cqrs.Event) error {
+	switch data := event.Data().(type) {
 	case InventoryItemCreated:
 		item := &InventoryItem{
-			Id:   e.AggregateId(),
-			Name: e.Name,
+			Id:   event.AggregateId(),
+			Name: data.Name,
 		}
 		p.repository.Save(item)
 
 	case InventoryItemRenamed:
-		if item := p.repository.FindById(e.AggregateId()); item != nil {
-			item.Name = e.NewName
+		if item := p.repository.FindById(event.AggregateId()); item != nil {
+			item.Name = data.NewName
 			p.repository.Save(item)
 		}
 
 	case InventoryItemDeactivated:
-		p.repository.Delete(e.AggregateId())
+		p.repository.Delete(event.AggregateId())
 
 	case ItemsCheckedInToInventory:
-		if item := p.repository.FindById(e.AggregateId()); item != nil {
-			item.Count += e.Count
+		if item := p.repository.FindById(event.AggregateId()); item != nil {
+			item.Count += data.Count
 			p.repository.Save(item)
 		}
 
 	case ItemsRemovedFromInventory:
-		if item := p.repository.FindById(e.AggregateId()); item != nil {
-			item.Count -= e.Count
+		if item := p.repository.FindById(event.AggregateId()); item != nil {
+			item.Count -= data.Count
 			p.repository.Save(item)
 		}
 	}
+	return nil
 }
 
 func NewInventoryProjector(repository InventoryItemRepository) *InventoryProjector {

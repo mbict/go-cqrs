@@ -71,7 +71,7 @@ func (_m *MockAggregateContext) OriginalVersion() int {
 }
 
 // StoreEvent provides a mock function with given fields: _a0
-func (_m *MockAggregateContext) StoreEvent(_a0 Event) {
+func (_m *MockAggregateContext) StoreEvent(_a0 EventData) {
 	_m.Called(_a0)
 }
 

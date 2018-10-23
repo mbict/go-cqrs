@@ -13,9 +13,9 @@ import (
 var fixedId = uuid.Must(uuid.NewV4())
 
 type test_eventStream struct {
-	i          int
-	count      int
-	occurredAt time.Time
+	i         int
+	count     int
+	timestamp time.Time
 }
 
 func (*test_eventStream) EventName() string {
@@ -30,8 +30,8 @@ func (s *test_eventStream) Version() int {
 	return s.i
 }
 
-func (s *test_eventStream) OccurredAt() time.Time {
-	return s.occurredAt
+func (s *test_eventStream) Timestamp() time.Time {
+	return s.timestamp
 }
 
 func (s *test_eventStream) Next() bool {
@@ -53,7 +53,7 @@ func (*test_eventStream) Scan(Event) error {
 
 var x = 1
 
-func callMe(e Event) {
+func callMe(e EventData) {
 	x++
 }
 
@@ -85,7 +85,7 @@ func BenchmarkAggregateRepositoryEvenPassedByValue(b *testing.B) {
 		//eventStream := &MockEventStream{}
 		//eventStream.On("Next").Return(true).Times(1000)
 		//eventStream.On("Next").Return(false)
-		//eventStream.On("EventName").Return("event.a")
+		//eventStream.On("EventType").Return("event.a")
 		//eventStream.On("Version").Return(1)
 		//eventStream.On("Scan", mock.Anything).Return(nil)
 		//
@@ -112,7 +112,7 @@ func BenchmarkAggregateRepositoryEvenPassedByValue(b *testing.B) {
 //		//eventStream := &MockEventStream{}
 //		//eventStream.On("Next").Return(true).Times(1000)
 //		//eventStream.On("Next").Return(false)
-//		//eventStream.On("EventName").Return("event.a")
+//		//eventStream.On("EventType").Return("event.a")
 //		//eventStream.On("Version").Return(1)
 //		//eventStream.On("Scan", mock.Anything).Return(nil)
 //		//

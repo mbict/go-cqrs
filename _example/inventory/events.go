@@ -4,46 +4,49 @@ import (
 	"github.com/mbict/go-cqrs"
 )
 
+const (
+	ItemDeactivated cqrs.EventType = "inventory:item_deactivated"
+	ItemCreated     cqrs.EventType = "inventory:item_created"
+	ItemRenamed     cqrs.EventType = "inventory:item_renamed"
+	ItemsCheckedIn  cqrs.EventType = "inventory:items_checked_in"
+	ItemsRemoved    cqrs.EventType = "inventory:items_removed"
+)
+
 type InventoryItemDeactivated struct {
-	cqrs.EventBase
 }
 
-func (InventoryItemDeactivated) EventName() string {
-	return "inventory_item_deactivated"
+func (InventoryItemDeactivated) EventType() cqrs.EventType {
+	return ItemDeactivated
 }
 
 type InventoryItemCreated struct {
-	cqrs.EventBase
 	Name string `json:"name"`
 }
 
-func (InventoryItemCreated) EventName() string {
-	return "inventory_item_created"
+func (InventoryItemCreated) EventType() cqrs.EventType {
+	return ItemCreated
 }
 
 type InventoryItemRenamed struct {
-	cqrs.EventBase
 	NewName string `json:"new_name"`
 }
 
-func (InventoryItemRenamed) EventName() string {
-	return "inventory_item_renamed"
+func (InventoryItemRenamed) EventType() cqrs.EventType {
+	return ItemRenamed
 }
 
 type ItemsCheckedInToInventory struct {
-	cqrs.EventBase
 	Count int `json:"Count"`
 }
 
-func (ItemsCheckedInToInventory) EventName() string {
-	return "items_checked_in_to_inventory"
+func (ItemsCheckedInToInventory) EventType() cqrs.EventType {
+	return ItemsCheckedIn
 }
 
 type ItemsRemovedFromInventory struct {
-	cqrs.EventBase
 	Count int `json:"Count"`
 }
 
-func (ItemsRemovedFromInventory) EventName() string {
-	return "items_removed_from_inventory"
+func (ItemsRemovedFromInventory) EventType() cqrs.EventType {
+	return ItemsRemoved
 }

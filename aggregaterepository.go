@@ -3,12 +3,7 @@ package cqrs
 import (
 	"fmt"
 	"github.com/satori/go.uuid"
-	"reflect"
 )
-
-// PublishEventFunc is a callback function that is getting called once the eventstore has successfully stored the
-// new events gereated by the aggregate
-type PublishEventFunc func(event Event)
 
 // AggregateBuilder is the builder function to create new aggregate compositions.
 // This could be used to introduce new strategies how to build a aggregate like the snapshot implementation
@@ -24,10 +19,9 @@ type AggregateRepository interface {
 }
 
 type aggregateRepository struct {
-	eventStore           EventStore
-	aggregateBuilder     AggregateBuilder
-	abstractEventFactory EventFactory
-	publishEventHooks    []PublishEventFunc
+	eventStore       EventStore
+	aggregateBuilder AggregateBuilder
+	eventFactory     EventFactory
 }
 
 func DefaultAggregateBuilder(factory AggregateFactoryFunc) AggregateBuilder {
@@ -52,23 +46,23 @@ func (r *aggregateRepository) Load(aggregateId uuid.UUID) (Aggregate, error) {
 	}
 
 	for stream != nil && stream.Next() {
-		event := r.abstractEventFactory.MakeEvent(stream.EventName(), aggregateId, stream.Version(), stream.OccurredAt())
-		if event == nil {
-			return nil, fmt.Errorf("the repository has no event factory registered for event type: %s", stream.EventName())
-		}
-
 		if stream.Version()-1 != aggregate.Version() {
 			return nil, fmt.Errorf("event version (%d) mismatch with Aggregate next Version (%d)", stream.Version(), aggregate.Version()+1)
 		}
 
-		err = stream.Scan(event)
-		if err != nil {
-			return nil, fmt.Errorf("the repository cannot populate event data from stream for event type: %s, with error `%s`", stream.EventName(), err)
+		eventData := r.eventFactory.MakeEvent(stream.EventType())
+		if eventData == nil {
+			return nil, fmt.Errorf("the repository has no event factory registered for event type: %s", stream.EventType())
 		}
 
-		// we do not want to pass events by pointer reference but by pass by value,
-		// just to ensure the data of the events are readonly so no other process can change them
-		event = reflect.Indirect(reflect.ValueOf(event)).Interface().(Event)
+		err = stream.Scan(eventData)
+		if err != nil {
+			return nil, fmt.Errorf("the repository cannot populate event data from stream for event type: %s, with error `%s`", stream.EventType(), err)
+		}
+
+		//create the event with metadata
+		event := NewEvent(aggregateId, stream.Version(), stream.Timestamp(), eventData)
+
 		aggregate.Apply(event)
 		aggregate.incrementVersion()
 	}
@@ -85,14 +79,6 @@ func (r *aggregateRepository) Save(aggregate Aggregate) error {
 		return err
 	}
 	aggregate.clearUncommittedEvents()
-
-	for _, event := range events {
-		event = reflect.Indirect(reflect.ValueOf(event)).Interface().(Event)
-		for _, f := range r.publishEventHooks {
-			f(event)
-		}
-	}
-
 	return nil
 }
 
@@ -103,12 +89,10 @@ func (r *aggregateRepository) Save(aggregate Aggregate) error {
 func NewAggregateRepository(
 	eventStore EventStore,
 	aggregateBuilder AggregateBuilder,
-	abstractEventFactory EventFactory,
-	publishEventHooks ...PublishEventFunc) AggregateRepository {
+	eventFactory EventFactory) AggregateRepository {
 	return &aggregateRepository{
-		eventStore:           eventStore,
-		aggregateBuilder:     aggregateBuilder,
-		abstractEventFactory: abstractEventFactory,
-		publishEventHooks:    publishEventHooks,
+		eventStore:       eventStore,
+		aggregateBuilder: aggregateBuilder,
+		eventFactory:     eventFactory,
 	}
 }

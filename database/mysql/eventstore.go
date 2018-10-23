@@ -107,7 +107,7 @@ func (s *EventStore) WriteEvent(aggregateType string, events ...cqrs.Event) erro
 			return err
 		}
 
-		result, err := tx.Stmt(s.insertStmt).Exec(MysqlUUID(event.AggregateId()), aggregateType, event.EventName(), payload, event.Version(), event.OccurredAt())
+		result, err := tx.Stmt(s.insertStmt).Exec(MysqlUUID(event.AggregateId()), aggregateType, event.EventType(), payload, event.Version(), event.Timestamp())
 		if err != nil {
 			return err
 		}

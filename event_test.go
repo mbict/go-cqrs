@@ -12,17 +12,21 @@ func TestNewEventBaseFromAggregate(t *testing.T) {
 	agg.On("OriginalVersion").Return(10)
 	agg.On("getUncommittedEvents").Return(nil)
 
-	eventBase := NewEventBaseFromAggregate(agg)
+	event := NewEventFromAggregate(agg, eventA{})
 
-	if eventBase.Version() != 11 {
-		t.Errorf("expected version %d but got %d", 11, eventBase.Version())
+	if event.Version() != 11 {
+		t.Errorf("expected version %d but got %d", 11, event.Version())
 	}
 
-	if !uuid.Equal(eventBase.AggregateId(), id) {
-		t.Errorf("expected aggregate id `%s` but got `%s`", id.String(), eventBase.AggregateId())
+	if string(event.EventType()) != "event:a" {
+		t.Errorf("expected event type to be `%s` but got `%s`", "event:a", event.EventType())
 	}
 
-	if eventBase.OccurredAt().IsZero() {
+	if !uuid.Equal(event.AggregateId(), id) {
+		t.Errorf("expected aggregate id `%s` but got `%s`", id.String(), event.AggregateId())
+	}
+
+	if event.Timestamp().IsZero() {
 		t.Error("expected aggregate occurred at to be arround now but got an empty time")
 	}
 }

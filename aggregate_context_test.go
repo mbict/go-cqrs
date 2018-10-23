@@ -49,10 +49,7 @@ func TestAggregateContext_OrignalVersionShoulReturnCommitedVersion(t *testing.T)
 		t.Errorf("expected original version %d but got %d", 123, ctx.OriginalVersion())
 	}
 
-	ctx.StoreEvent(
-		eventA{
-			NewEventBaseFromAggregate(ctx),
-		})
+	ctx.StoreEvent(eventA{})
 
 	if ctx.OriginalVersion() != 123 {
 		t.Errorf("expected original version %d but got %d", 123, ctx.OriginalVersion())
@@ -67,8 +64,8 @@ func TestAggregateContext_EventsHandling(t *testing.T) {
 	id := uuid.Must(uuid.NewV4())
 	ctx := NewAggregateContext(id, 0)
 
-	ctx.StoreEvent(&MockEvent{})
-	ctx.StoreEvent(&MockEvent{})
+	ctx.StoreEvent(&eventA{})
+	ctx.StoreEvent(&eventB{})
 
 	events := ctx.getUncommittedEvents()
 

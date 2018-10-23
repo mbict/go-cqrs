@@ -3,59 +3,77 @@ package cqrs
 import (
 	"github.com/mbict/go-eventbus"
 	"github.com/satori/go.uuid"
+	"reflect"
 	"time"
 )
 
-// Event is the interface of an event what an aggregate needs
-type Event interface {
-	eventbus.Event
-	EventBase
-}
+type EventType = eventbus.EventType
 
-type EventBase interface {
+// Event
+type Event interface {
+	EventData
 	AggregateId() uuid.UUID
 	Version() int
-	OccurredAt() time.Time
+	Timestamp() time.Time
+	Data() EventData
 }
 
-// EventBase is an utility class for not reimplementing AggregateId and Version
+// EventData is the actual data of the event
+type EventData interface {
+	EventType() EventType
+}
+
+// Event is an utility class for not reimplementing AggregateId and Version
 // methods of the Event interface
-type eventBase struct {
-	id         uuid.UUID
-	version    int
-	occurredAt time.Time
+type event struct {
+	EventData
+	id        uuid.UUID
+	version   int
+	timestamp time.Time
 }
 
-// NewEventBase constructor with plain version
-func NewEventBase(id uuid.UUID, version int, occurredAt time.Time) EventBase {
-	return &eventBase{
-		id:         id,
-		version:    version,
-		occurredAt: occurredAt,
-	}
+func (e *event) Timestamp() time.Time {
+	return e.timestamp
 }
 
-// NewEventBaseFromAggregate constructor will create a new eventbase
-// based on the latest aggregate state
-func NewEventBaseFromAggregate(aggregate AggregateContext) EventBase {
-	return &eventBase{
-		id:         aggregate.AggregateId(),
-		version:    aggregate.OriginalVersion() + len(aggregate.getUncommittedEvents()) + 1,
-		occurredAt: time.Now(),
-	}
+// Timestamp returns the date and time the event occurred the first time
+func (e *event) Data() EventData {
+	return e.EventData
 }
 
 // AggregateId returns the id of the aggregate
-func (e *eventBase) AggregateId() uuid.UUID {
+func (e *event) AggregateId() uuid.UUID {
 	return e.id
 }
 
 // Version returns the event version/sequence in the stream
-func (e *eventBase) Version() int {
+func (e *event) Version() int {
 	return e.version
 }
 
-// OccurredAt returns the date and time the event occurred the first time
-func (e *eventBase) OccurredAt() time.Time {
-	return e.occurredAt
+// NewEvent constructor with plain version
+func NewEvent(id uuid.UUID, version int, timestamp time.Time, data EventData) Event {
+	return &event{
+		EventData: passEventByValue(data),
+		id:        id,
+		version:   version,
+		timestamp: timestamp,
+	}
+}
+
+// NewEventFromAggregate constructor will create a new event
+// based on the latest aggregate state
+func NewEventFromAggregate(aggregate AggregateContext, data EventData) Event {
+	return &event{
+		EventData: passEventByValue(data),
+		id:        aggregate.AggregateId(),
+		version:   aggregate.OriginalVersion() + len(aggregate.getUncommittedEvents()) + 1,
+		timestamp: time.Now(),
+	}
+}
+
+// we do not want to pass events by pointer reference but by pass by value,
+// just to ensure the data of the events are readonly so no other process can change them
+func passEventByValue(data EventData) EventData {
+	return reflect.Indirect(reflect.ValueOf(data)).Interface().(EventData)
 }

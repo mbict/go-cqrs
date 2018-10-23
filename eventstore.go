@@ -11,12 +11,12 @@ type EventStore interface {
 }
 
 type EventStream interface {
-	EventName() string
+	EventType() EventType
 	AggregateId() uuid.UUID
 	Version() int
-	OccurredAt() time.Time
+	Timestamp() time.Time
 
 	Next() bool
 	Error() error
-	Scan(Event) error
+	Scan(EventData) error
 }
