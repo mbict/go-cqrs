@@ -79,6 +79,12 @@ func (r *aggregateRepository) Save(aggregate Aggregate) error {
 		return err
 	}
 	aggregate.clearUncommittedEvents()
+
+	//apply events
+	for _, event := range events {
+		aggregate.Apply(event)
+		aggregate.incrementVersion()
+	}
 	return nil
 }
 

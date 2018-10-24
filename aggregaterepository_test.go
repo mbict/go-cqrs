@@ -332,6 +332,8 @@ func TestAggregateRepository_SaveWithOneEvent(t *testing.T) {
 	aggregate.On("AggregateName").Return("testAggregate")
 	aggregate.On("getUncommittedEvents").Return(events)
 	aggregate.On("clearUncommittedEvents")
+	aggregate.On("Apply", mock.Anything).Return(nil)
+	aggregate.On("incrementVersion")
 	store := &MockEventStore{}
 	store.On("WriteEvent", "testAggregate", mock.Anything).Return(nil)
 
@@ -342,6 +344,9 @@ func TestAggregateRepository_SaveWithOneEvent(t *testing.T) {
 		t.Errorf("expected a nil error, but got error `%v`", err)
 	}
 
+	aggregate.AssertNumberOfCalls(t, "Apply", 1)
+	aggregate.AssertNumberOfCalls(t, "incrementVersion", 1)
+	aggregate.AssertNumberOfCalls(t, "clearUncommittedEvents", 1)
 	//store.AssertNumberOfCalls(t, "WriteEvent", 1)
 	//store.AssertCalled(t, "WriteEvent", "testAggregate", matchEventData( aggregateId, eventData, 1))
 	//aggregate.AssertNumberOfCalls(t, "getUncommittedEvents", 1)
@@ -355,6 +360,8 @@ func TestAggregateRepository_SaveWithMultipleEvents(t *testing.T) {
 	aggregate.On("AggregateName").Return("testAggregate")
 	aggregate.On("getUncommittedEvents").Return(events)
 	aggregate.On("clearUncommittedEvents")
+	aggregate.On("Apply", mock.Anything).Return(nil)
+	aggregate.On("incrementVersion")
 	store := &MockEventStore{}
 	store.On("WriteEvent", "testAggregate", event, event, event).Return(nil)
 
@@ -369,6 +376,8 @@ func TestAggregateRepository_SaveWithMultipleEvents(t *testing.T) {
 	store.AssertCalled(t, "WriteEvent", "testAggregate", event, event, event)
 	aggregate.AssertNumberOfCalls(t, "getUncommittedEvents", 1)
 	aggregate.AssertNumberOfCalls(t, "clearUncommittedEvents", 1)
+	aggregate.AssertNumberOfCalls(t, "Apply", 3)
+	aggregate.AssertNumberOfCalls(t, "incrementVersion", 3)
 }
 
 func matchEventData(aggregateId uuid.UUID, eventData EventData, version int) interface{} {

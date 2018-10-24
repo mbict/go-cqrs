@@ -76,11 +76,21 @@ func (r *DomainAggregateRepository) Load(aggregateType string, aggregateId uuid.
 
 //Save will save all the events to the event store.
 func (r *DomainAggregateRepository) Save(aggregate Aggregate) error {
-	for _, event := range aggregate.getUncommittedEvents() {
-		if err := r.eventStore.WriteEvent(aggregate.AggregateName(), event); err != nil {
-			return err
-		}
+	events := aggregate.getUncommittedEvents()
+	if len(events) == 0 {
+		return nil
+	}
+
+	if err := r.eventStore.WriteEvent(aggregate.AggregateName(), events...); err != nil {
+		return err
 	}
 	aggregate.clearUncommittedEvents()
+
+	//apply events
+	for _, event := range events {
+		aggregate.Apply(event)
+		aggregate.incrementVersion()
+	}
+
 	return nil
 }
