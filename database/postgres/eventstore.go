@@ -114,7 +114,7 @@ func (s *EventStore) WriteEvent(aggregateType string, events ...cqrs.Event) erro
 	defer tx.Rollback()
 
 	for _, event := range events {
-		payload, err := json.Marshal(event)
+		payload, err := json.Marshal(event.Data())
 		if err != nil {
 			return err
 		}
