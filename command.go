@@ -1,12 +1,8 @@
 package cqrs
 
-import (
-	"github.com/satori/go.uuid"
-)
-
 type Command interface {
 	CommandName() string
-	AggregateId() uuid.UUID
+	AggregateId() AggregateId
 }
 
 type AggregateCommand interface {

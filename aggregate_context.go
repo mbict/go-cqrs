@@ -1,12 +1,8 @@
 package cqrs
 
-import (
-	"github.com/satori/go.uuid"
-)
-
 type AggregateContext interface {
 	// AggregateId returns the id of the aggregate.
-	AggregateId() uuid.UUID
+	AggregateId() AggregateId
 
 	// Version returns the version of the aggregate.
 	Version() int
@@ -31,12 +27,12 @@ type AggregateContext interface {
 }
 
 type aggregateContext struct {
-	id      uuid.UUID
+	id      AggregateId
 	version int
 	events  []Event
 }
 
-func NewAggregateContext(id uuid.UUID, version int) AggregateContext {
+func NewAggregateContext(id AggregateId, version int) AggregateContext {
 	return &aggregateContext{
 		id:      id,
 		events:  []Event{},
@@ -44,7 +40,7 @@ func NewAggregateContext(id uuid.UUID, version int) AggregateContext {
 	}
 }
 
-func (a *aggregateContext) AggregateId() uuid.UUID {
+func (a *aggregateContext) AggregateId() AggregateId {
 	return a.id
 }
 

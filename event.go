@@ -2,7 +2,6 @@ package cqrs
 
 import (
 	"github.com/mbict/go-eventbus"
-	"github.com/satori/go.uuid"
 	"reflect"
 	"time"
 )
@@ -12,7 +11,7 @@ type EventType = eventbus.EventType
 // Event
 type Event interface {
 	EventData
-	AggregateId() uuid.UUID
+	AggregateId() AggregateId
 	Version() int
 	Timestamp() time.Time
 	Data() EventData
@@ -27,7 +26,7 @@ type EventData interface {
 // methods of the Event interface
 type event struct {
 	EventData
-	id        uuid.UUID
+	id        AggregateId
 	version   int
 	timestamp time.Time
 }
@@ -42,7 +41,7 @@ func (e *event) Data() EventData {
 }
 
 // AggregateId returns the id of the aggregate
-func (e *event) AggregateId() uuid.UUID {
+func (e *event) AggregateId() AggregateId {
 	return e.id
 }
 
@@ -52,7 +51,7 @@ func (e *event) Version() int {
 }
 
 // NewEvent constructor with plain version
-func NewEvent(id uuid.UUID, version int, timestamp time.Time, data EventData) Event {
+func NewEvent(id AggregateId, version int, timestamp time.Time, data EventData) Event {
 	return &event{
 		EventData: passEventByValue(data),
 		id:        id,

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/mbict/go-cqrs"
 	"github.com/mbict/go-cqrs/database"
-	"github.com/satori/go.uuid"
 	"log"
 	"strings"
 )
@@ -47,7 +46,7 @@ func createEnumeratedBindParams(offset, length int) string {
 	return result
 }
 
-func (s *EventStore) FindStream(aggregateTypes []string, aggregateIds []uuid.UUID, eventTypes []string) (cqrs.EventStream, error) {
+func (s *EventStore) FindStream(aggregateTypes []string, aggregateIds []cqrs.AggregateId, eventTypes []string) (cqrs.EventStream, error) {
 
 	bindVars := []interface{}{}
 	wheres := []string{}
@@ -92,7 +91,7 @@ func (s *EventStore) FindStream(aggregateTypes []string, aggregateIds []uuid.UUI
 	return database.NewDatabaseEventStream(rows), nil
 }
 
-func (s *EventStore) LoadStream(aggregateType string, aggregateId uuid.UUID, version int) (cqrs.EventStream, error) {
+func (s *EventStore) LoadStream(aggregateType string, aggregateId cqrs.AggregateId, version int) (cqrs.EventStream, error) {
 
 	rows, err := s.selectStmt.Query(aggregateId, aggregateType, version)
 	if err == sql.ErrNoRows {

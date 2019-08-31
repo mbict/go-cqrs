@@ -1,18 +1,17 @@
 package cqrs
 
 import (
-	"github.com/satori/go.uuid"
 	"time"
 )
 
 type EventStore interface {
-	LoadStream(aggregateName string, aggregateId uuid.UUID, version int) (EventStream, error)
+	LoadStream(aggregateName string, aggregateId AggregateId, version int) (EventStream, error)
 	WriteEvent(string, ...Event) error
 }
 
 type EventStream interface {
 	EventType() EventType
-	AggregateId() uuid.UUID
+	AggregateId() AggregateId
 	Version() int
 	Timestamp() time.Time
 

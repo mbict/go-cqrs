@@ -2,7 +2,6 @@ package cqrs
 
 import (
 	"errors"
-	"github.com/satori/go.uuid"
 	. "github.com/stretchr/testify/mock"
 	"testing"
 )
@@ -55,7 +54,7 @@ func TestAggregateCommandHandler_NonAggregateCommand(t *testing.T) {
 func TestAggregateCommandHandler_AggregateNotFound(t *testing.T) {
 	repo := &MockAggregateRepository{}
 	repo.On("Load", Anything).Return(nil, nil)
-	command := &commandA{Id: uuid.Must(uuid.NewV4())}
+	command := &commandA{Id: NewIntAggregateId(123)}
 
 	err := AggregateCommandHandler(repo).Handle(nil, command)
 
@@ -78,7 +77,7 @@ func TestAggregateCommandHandler_RepositoryLoadError(t *testing.T) {
 	repoError := errors.New("repo error")
 	repo := &MockAggregateRepository{}
 	repo.On("Load", Anything).Return(nil, repoError)
-	command := &commandA{Id: uuid.Must(uuid.NewV4())}
+	command := &commandA{Id: NewIntAggregateId(123)}
 
 	err := AggregateCommandHandler(repo).Handle(nil, command)
 

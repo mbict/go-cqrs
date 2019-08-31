@@ -1,9 +1,5 @@
 package cqrs
 
-import (
-	"github.com/satori/go.uuid"
-)
-
 // aggregateSnapshotComposition is a wrapper to store the initial snapshot version
 type aggregateSnapshotComposition struct {
 	snapshotVersion int
@@ -21,7 +17,7 @@ func (c *aggregateSnapshotComposition) Aggregate() Aggregate {
 	return c.aggregate
 }
 
-func (c *aggregateSnapshotComposition) AggregateId() uuid.UUID {
+func (c *aggregateSnapshotComposition) AggregateId() AggregateId {
 	return c.aggregate.AggregateId()
 }
 
@@ -63,7 +59,7 @@ func (c *aggregateSnapshotComposition) Apply(e Event) error {
 
 // SnapshotAggregateBuilder
 func SnapshotAggregateBuilder(factory AggregateFactoryFunc, snapshotStore SnapshotStore) AggregateBuilder {
-	return func(aggregateId uuid.UUID) (Aggregate, error) {
+	return func(aggregateId AggregateId) (Aggregate, error) {
 		aggregateComposition := &aggregateSnapshotComposition{}
 		context := NewAggregateContext(aggregateId, 0)
 		aggregate := factory(context)

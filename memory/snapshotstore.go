@@ -3,7 +3,6 @@ package memory
 import (
 	"encoding/json"
 	"github.com/mbict/go-cqrs"
-	"github.com/satori/go.uuid"
 	"sync"
 )
 
@@ -17,7 +16,7 @@ type snapshotStore struct {
 	mu        sync.RWMutex
 }
 
-func (s *snapshotStore) Load(aggregateId uuid.UUID, aggregate cqrs.Aggregate) (int, error) {
+func (s *snapshotStore) Load(aggregateId cqrs.AggregateId, aggregate cqrs.Aggregate) (int, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 

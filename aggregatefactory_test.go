@@ -1,7 +1,6 @@
 package cqrs
 
 import (
-	"github.com/satori/go.uuid"
 	"testing"
 )
 
@@ -12,12 +11,24 @@ func TestCallbackAggregateFactoryMake(t *testing.T) {
 		t.Errorf("expected a nil error but got error : %v", err)
 	}
 
-	id := uuid.Must(uuid.NewV4())
+	id := NewStringAggregateId("abc")
 	ctx := NewAggregateContext(id, 0)
 
 	aggregate := f.MakeAggregate("aggregateA", ctx)
 	if aggregate == nil {
 		t.Fatal("expected the constructed aggregate but got nil instead")
+	}
+
+	if aggregate.AggregateName() != "aggregateA" {
+		t.Errorf("expected an aggregate with name `%v` but got `%v`", "aggregateA", aggregate.AggregateName())
+	}
+
+	if aggregate.AggregateId().String() != "abc" {
+		t.Errorf("expected an aggregate with id `%v` but got `%v`", "abc", aggregate.AggregateId())
+	}
+
+	if aggregate.Version() != 0 {
+		t.Errorf("expected an aggregate with version `%v` but got `%v`", 0, aggregate.Version())
 	}
 
 	if aggregate.AggregateName() != "aggregateA" {
@@ -32,7 +43,7 @@ func TestCallbackAggregateFactoryMake(t *testing.T) {
 func TestCallbackAggregateFactoryMakeWithUnknownAggregate(t *testing.T) {
 	f := NewCallbackAggregateFactory()
 
-	ctx := NewAggregateContext(uuid.Must(uuid.NewV4()), 0)
+	ctx := NewAggregateContext(NewStringAggregateId("abc"), 0)
 	aggregate := f.MakeAggregate("this.aggregate.is.not.registered", ctx)
 	if aggregate != nil {
 		t.Fatalf("expected a nil response but got an aggregate instead `%T`", aggregate)
