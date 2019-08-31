@@ -1,3 +1,6 @@
+go.sum
+
+# OSX
 .DS_Store
 .idea
 

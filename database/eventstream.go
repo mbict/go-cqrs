@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"github.com/mbict/go-cqrs"
+	"github.com/mbict/go-cqrs/v4"
 	"time"
 )
 

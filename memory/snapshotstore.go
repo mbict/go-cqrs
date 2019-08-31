@@ -2,7 +2,7 @@ package memory
 
 import (
 	"encoding/json"
-	"github.com/mbict/go-cqrs"
+	"github.com/mbict/go-cqrs/v4"
 	"sync"
 )
 

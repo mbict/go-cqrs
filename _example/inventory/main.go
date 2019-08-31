@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/mbict/go-commandbus"
-	"github.com/mbict/go-cqrs"
-	"github.com/mbict/go-cqrs/memory"
+	"github.com/mbict/go-cqrs/v4"
+	"github.com/mbict/go-cqrs/v4/memory"
 	"github.com/mbict/go-eventbus"
 	"github.com/satori/go.uuid"
 )

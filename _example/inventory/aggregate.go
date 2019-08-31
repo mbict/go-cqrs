@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"github.com/mbict/go-cqrs"
+	"github.com/mbict/go-cqrs/v4"
 )
 
 var ErrAlreadyCreated = errors.New("already created")

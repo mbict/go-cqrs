@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/mbict/go-cqrs"
-	"github.com/mbict/go-cqrs/database"
+	"github.com/mbict/go-cqrs/v4"
+	"github.com/mbict/go-cqrs/v4/database"
 	"log"
 	"strings"
 )

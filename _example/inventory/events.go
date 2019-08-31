@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/mbict/go-cqrs"
+	"github.com/mbict/go-cqrs/v4"
 )
 
 const (

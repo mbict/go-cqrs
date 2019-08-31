@@ -3,7 +3,7 @@ package memory
 import (
 	"errors"
 	"github.com/jinzhu/copier"
-	"github.com/mbict/go-cqrs"
+	"github.com/mbict/go-cqrs/v4"
 	"time"
 )
 

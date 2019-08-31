@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/mbict/go-cqrs"
+	"github.com/mbict/go-cqrs/v4"
 )
 
 //InventoryNameProjector is used for checking the uniqueness of the inventory name in
