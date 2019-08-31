@@ -22,19 +22,19 @@ func (p *InventoryNameProjector) Handle(event cqrs.Event) error {
 	switch data := event.Data().(type) {
 	case InventoryItemCreated:
 		item := &InventoryName{
-			Id:   event.AggregateId(),
+			Id:   event.AggregateId().String(),
 			Name: data.Name,
 		}
 		p.repository.Save(item)
 
 	case InventoryItemRenamed:
-		if item := p.repository.FindById(event.AggregateId()); item != nil {
+		if item := p.repository.FindById(event.AggregateId().String()); item != nil {
 			item.Name = data.NewName
 			p.repository.Save(item)
 		}
 
 	case InventoryItemDeactivated:
-		p.repository.Delete(event.AggregateId())
+		p.repository.Delete(event.AggregateId().String())
 	}
 	return nil
 }
@@ -53,28 +53,28 @@ func (p *InventoryProjector) Handle(event cqrs.Event) error {
 	switch data := event.Data().(type) {
 	case InventoryItemCreated:
 		item := &InventoryItem{
-			Id:   event.AggregateId(),
+			Id:   event.AggregateId().String(),
 			Name: data.Name,
 		}
 		p.repository.Save(item)
 
 	case InventoryItemRenamed:
-		if item := p.repository.FindById(event.AggregateId()); item != nil {
+		if item := p.repository.FindById(event.AggregateId().String()); item != nil {
 			item.Name = data.NewName
 			p.repository.Save(item)
 		}
 
 	case InventoryItemDeactivated:
-		p.repository.Delete(event.AggregateId())
+		p.repository.Delete(event.AggregateId().String())
 
 	case ItemsCheckedInToInventory:
-		if item := p.repository.FindById(event.AggregateId()); item != nil {
+		if item := p.repository.FindById(event.AggregateId().String()); item != nil {
 			item.Count += data.Count
 			p.repository.Save(item)
 		}
 
 	case ItemsRemovedFromInventory:
-		if item := p.repository.FindById(event.AggregateId()); item != nil {
+		if item := p.repository.FindById(event.AggregateId().String()); item != nil {
 			item.Count -= data.Count
 			p.repository.Save(item)
 		}

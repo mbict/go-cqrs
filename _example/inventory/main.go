@@ -6,7 +6,6 @@ import (
 	"github.com/mbict/go-cqrs/v4"
 	"github.com/mbict/go-cqrs/v4/memory"
 	"github.com/mbict/go-eventbus"
-	"github.com/satori/go.uuid"
 )
 
 var (
@@ -92,7 +91,7 @@ func init() {
 //rough example
 func main() {
 	// the unique id of the first inventoryItem
-	idFirstItem := uuid.Must(uuid.NewV4())
+	idFirstItem := cqrs.NewStringAggregateId("test-1234-unique")
 
 	//we want to create a new inventory item
 	commandCreate := CreateInventoryItem{
@@ -107,11 +106,11 @@ func main() {
 	}
 
 	//check if the projection has inserted the item into the read repository
-	item := itemRepository.FindById(idFirstItem)
+	item := itemRepository.FindById(idFirstItem.String())
 	if item == nil {
 		panic("aahhww something went wrong")
 	}
-	fmt.Printf("[SUCCESS] we got a inventory item from the repo:\n%#v\n", item)
+	fmt.Printf("[SUCCESS]we got a inventory item from the repo:\n          %#v\n", item)
 
 	//oops did i just make a typo in the name
 	commandRenameItem := RenameInventoryItem{
@@ -126,11 +125,11 @@ func main() {
 	}
 
 	//check if the projection has updated our aggregates name
-	item = itemRepository.FindById(idFirstItem)
+	item = itemRepository.FindById(idFirstItem.String())
 	if item.Name != "duracell battery" {
 		panic("the projection was lazy and did not update the inventory items name")
 	}
-	fmt.Printf("[SUCCESS] inventory item item after renaming:\n%#v\n", item)
+	fmt.Printf("[SUCCESS] inventory item item after renaming:\n          %#v\n", item)
 
 	//Lets checkin items to the inventory
 	commandCheckIn := CheckInItemsToInventory{
@@ -144,14 +143,14 @@ func main() {
 	}
 
 	//check if the projection has updated our aggregates name
-	item = itemRepository.FindById(idFirstItem)
+	item = itemRepository.FindById(idFirstItem.String())
 	if item.Count != 500 {
 		panic("there should be 500 checked in items in the inventory, but there was a thief who took some")
 	}
-	fmt.Printf("[SUCCESS] inventory item item after checking in items:\n%#v\n", item)
+	fmt.Printf("[SUCCESS] inventory item item after checking in items:\n          %#v\n", item)
 
 	//now lets test the middleware if the unique names work
-	newId := uuid.Must(uuid.NewV4())
+	newId := cqrs.NewStringAggregateId("test-")
 	createCommandWithDuplicateName := CreateInventoryItem{
 		InventoryItemId: newId,
 		Name:            "duracell battery",
@@ -174,10 +173,10 @@ func main() {
 	})
 
 	//and the final result is 500 + 657 - 123 = 1034
-	item = itemRepository.FindById(idFirstItem)
+	item = itemRepository.FindById(idFirstItem.String())
 	if item.Count != 1034 {
 		panic("we expected the outcome to be 1034 but its something different")
 	}
-	fmt.Printf("[SUCCESS] the inventory is changed in a good way, no thiefs today:\n%#v\n", item)
+	fmt.Printf("[SUCCESS] the inventory is changed in a good way, no thiefs today:\n          %#v\n", item)
 
 }

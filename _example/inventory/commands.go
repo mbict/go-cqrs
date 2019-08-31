@@ -2,11 +2,10 @@ package main
 
 import (
 	"github.com/mbict/go-cqrs/v4"
-	"github.com/satori/go.uuid"
 )
 
 type DeactivateInventoryItem struct {
-	InventoryItemId uuid.UUID
+	InventoryItemId cqrs.AggregateId
 }
 
 func (DeactivateInventoryItem) CommandName() string {
@@ -18,7 +17,7 @@ func (c DeactivateInventoryItem) AggregateId() cqrs.AggregateId {
 }
 
 type CreateInventoryItem struct {
-	InventoryItemId uuid.UUID
+	InventoryItemId cqrs.AggregateId
 	Name            string
 }
 
@@ -31,7 +30,7 @@ func (c CreateInventoryItem) AggregateId() cqrs.AggregateId {
 }
 
 type RenameInventoryItem struct {
-	InventoryItemId uuid.UUID
+	InventoryItemId cqrs.AggregateId
 	Name            string
 }
 
@@ -44,7 +43,7 @@ func (c RenameInventoryItem) AggregateId() cqrs.AggregateId {
 }
 
 type CheckInItemsToInventory struct {
-	InventoryItemId uuid.UUID
+	InventoryItemId cqrs.AggregateId
 	Count           int
 }
 
@@ -57,12 +56,12 @@ func (c CheckInItemsToInventory) AggregateId() cqrs.AggregateId {
 }
 
 type RemoveItemsFromInventory struct {
-	InventoryItemId uuid.UUID
+	InventoryItemId cqrs.AggregateId
 	Count           int
 }
 
 func (RemoveItemsFromInventory) CommandName() string {
-	return "remove_items_from_invertory"
+	return "remove_items_from_inventory"
 }
 
 func (c RemoveItemsFromInventory) AggregateId() cqrs.AggregateId {

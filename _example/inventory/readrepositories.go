@@ -1,40 +1,38 @@
 package main
 
-import "github.com/satori/go.uuid"
-
 // read models
 type InventoryName struct {
-	Id   uuid.UUID
+	Id   Id
 	Name string
 }
 
 type InventoryItem struct {
-	Id    uuid.UUID
+	Id    Id
 	Name  string
 	Count int
 }
 
 // interfaces of the repositories
 type InventoryNameRepository interface {
-	FindById(uuid.UUID) *InventoryName
+	FindById(Id) *InventoryName
 	FindByName(string) *InventoryName
 	Save(*InventoryName) error
-	Delete(uuid.UUID) error
+	Delete(Id) error
 }
 
 type InventoryItemRepository interface {
-	FindById(uuid.UUID) *InventoryItem
+	FindById(Id) *InventoryItem
 	Save(*InventoryItem) error
-	Delete(uuid.UUID) error
+	Delete(Id) error
 }
 
 //actual naive implementation of the interface of the InventoryNameRepository
 type inventoryNameRepository struct {
-	names map[string]uuid.UUID
-	ids   map[uuid.UUID]string
+	names map[string]Id
+	ids   map[Id]string
 }
 
-func (r *inventoryNameRepository) FindById(id uuid.UUID) *InventoryName {
+func (r *inventoryNameRepository) FindById(id Id) *InventoryName {
 	if name, ok := r.ids[id]; ok {
 		return &InventoryName{
 			Id:   id,
@@ -63,7 +61,7 @@ func (r *inventoryNameRepository) Save(item *InventoryName) error {
 	return nil
 }
 
-func (r *inventoryNameRepository) Delete(id uuid.UUID) error {
+func (r *inventoryNameRepository) Delete(id Id) error {
 	if name, ok := r.ids[id]; ok {
 		delete(r.names, name)
 		delete(r.ids, id)
@@ -73,10 +71,10 @@ func (r *inventoryNameRepository) Delete(id uuid.UUID) error {
 
 //actual naive implementation of the interface for InventoryItemRepository
 type inventoryItemRepository struct {
-	items map[uuid.UUID]*InventoryItem
+	items map[Id]*InventoryItem
 }
 
-func (r *inventoryItemRepository) FindById(id uuid.UUID) *InventoryItem {
+func (r *inventoryItemRepository) FindById(id Id) *InventoryItem {
 	if item, ok := r.items[id]; ok {
 		//we copy the item
 		return &InventoryItem{
@@ -93,7 +91,7 @@ func (r *inventoryItemRepository) Save(item *InventoryItem) error {
 	return nil
 }
 
-func (r *inventoryItemRepository) Delete(id uuid.UUID) error {
+func (r *inventoryItemRepository) Delete(id Id) error {
 	delete(r.items, id)
 	return nil
 }
@@ -101,13 +99,13 @@ func (r *inventoryItemRepository) Delete(id uuid.UUID) error {
 // repository constructors
 func NewInventoryNameRepository() InventoryNameRepository {
 	return &inventoryNameRepository{
-		names: make(map[string]uuid.UUID),
-		ids:   make(map[uuid.UUID]string),
+		names: make(map[string]Id),
+		ids:   make(map[Id]string),
 	}
 }
 
 func NewInventoryItemRepository() InventoryItemRepository {
 	return &inventoryItemRepository{
-		items: make(map[uuid.UUID]*InventoryItem),
+		items: make(map[Id]*InventoryItem),
 	}
 }

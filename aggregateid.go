@@ -18,7 +18,7 @@ type stringerAggregateId struct {
 }
 
 func (s *stringerAggregateId) Value() interface{} {
-	return s
+	return s.Stringer
 }
 
 func NewAggregateId(id fmt.Stringer) AggregateId {
