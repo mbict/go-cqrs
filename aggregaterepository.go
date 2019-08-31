@@ -2,17 +2,16 @@ package cqrs
 
 import (
 	"fmt"
-	"github.com/satori/go.uuid"
 )
 
 // AggregateBuilder is the builder function to create new aggregate compositions.
 // This could be used to introduce new strategies how to build a aggregate like the snapshot implementation
-type AggregateBuilder func(aggregateId uuid.UUID) (Aggregate, error)
+type AggregateBuilder func(aggregateId AggregateId) (Aggregate, error)
 
 // AggregateRepository is the interface that a specific aggregate repositories should implement.
 type AggregateRepository interface {
 	//Loads an aggregate of the given type and ID
-	Load(aggregateId uuid.UUID) (Aggregate, error)
+	Load(aggregateId AggregateId) (Aggregate, error)
 
 	//Saves the aggregate.
 	Save(aggregate Aggregate) error
@@ -25,7 +24,7 @@ type aggregateRepository struct {
 }
 
 func DefaultAggregateBuilder(factory AggregateFactoryFunc) AggregateBuilder {
-	return func(aggregateId uuid.UUID) (Aggregate, error) {
+	return func(aggregateId AggregateId) (Aggregate, error) {
 		context := NewAggregateContext(aggregateId, 0)
 		aggregate := factory(context)
 		if aggregate == nil {
@@ -35,7 +34,7 @@ func DefaultAggregateBuilder(factory AggregateFactoryFunc) AggregateBuilder {
 	}
 }
 
-func (r *aggregateRepository) Load(aggregateId uuid.UUID) (Aggregate, error) {
+func (r *aggregateRepository) Load(aggregateId AggregateId) (Aggregate, error) {
 	aggregate, err := r.aggregateBuilder(aggregateId)
 	if err != nil {
 		return nil, err

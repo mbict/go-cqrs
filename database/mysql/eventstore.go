@@ -6,7 +6,7 @@ import (
 	"errors"
 	"github.com/mbict/go-cqrs"
 	"github.com/mbict/go-cqrs/database"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	"log"
 	"strings"
 )
@@ -37,7 +37,7 @@ func NewDatabaseEventStore(db *sql.DB) cqrs.EventStore {
 	}
 }
 
-func (s *EventStore) FindStream(aggregateTypes []string, aggregateIds []uuid.UUID, eventTypes []string) (cqrs.EventStream, error) {
+func (s *EventStore) FindStream(aggregateTypes []string, aggregateIds []cqrs.AggregateId, eventTypes []string) (cqrs.EventStream, error) {
 
 	bindVars := []interface{}{}
 	wheres := []string{}
@@ -81,8 +81,8 @@ func (s *EventStore) FindStream(aggregateTypes []string, aggregateIds []uuid.UUI
 	return database.NewDatabaseEventStream(rows), nil
 }
 
-func (s *EventStore) LoadStream(aggregateType string, aggregateId uuid.UUID, version int) (cqrs.EventStream, error) {
-	rows, err := s.selectStmt.Query(MysqlUUID(aggregateId), aggregateType, version)
+func (s *EventStore) LoadStream(aggregateType string, aggregateId cqrs.AggregateId, version int) (cqrs.EventStream, error) {
+	rows, err := s.selectStmt.Query(MysqlUUID(aggregateId.Value().(uuid.UUID)), aggregateType, version)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -107,7 +107,7 @@ func (s *EventStore) WriteEvent(aggregateType string, events ...cqrs.Event) erro
 			return err
 		}
 
-		result, err := tx.Stmt(s.insertStmt).Exec(MysqlUUID(event.AggregateId()), aggregateType, event.EventType(), payload, event.Version(), event.Timestamp())
+		result, err := tx.Stmt(s.insertStmt).Exec(MysqlUUID(event.AggregateId().Value().(uuid.UUID)), aggregateType, event.EventType(), payload, event.Version(), event.Timestamp())
 		if err != nil {
 			return err
 		}

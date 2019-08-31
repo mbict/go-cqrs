@@ -2,7 +2,6 @@ package memory
 
 import (
 	"github.com/mbict/go-cqrs"
-	"github.com/satori/go.uuid"
 	"sync"
 )
 
@@ -17,7 +16,7 @@ func NewMemoryEventStore() cqrs.EventStore {
 	}
 }
 
-func (s *EventStore) LoadStream(aggregateName string, aggregateId uuid.UUID, version int) (cqrs.EventStream, error) {
+func (s *EventStore) LoadStream(aggregateName string, aggregateId cqrs.AggregateId, version int) (cqrs.EventStream, error) {
 	s.rwMutex.RLock()
 	defer s.rwMutex.RUnlock()
 

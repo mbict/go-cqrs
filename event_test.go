@@ -1,12 +1,11 @@
 package cqrs
 
 import (
-	"github.com/satori/go.uuid"
 	"testing"
 )
 
 func TestNewEventBaseFromAggregate(t *testing.T) {
-	id := uuid.Must(uuid.NewV4())
+	id := NewStringAggregateId("abc-def")
 	agg := &MockAggregateContext{}
 	agg.On("AggregateId").Return(id)
 	agg.On("OriginalVersion").Return(10)
@@ -22,11 +21,11 @@ func TestNewEventBaseFromAggregate(t *testing.T) {
 		t.Errorf("expected event type to be `%s` but got `%s`", "event:a", event.EventType())
 	}
 
-	if !uuid.Equal(event.AggregateId(), id) {
-		t.Errorf("expected aggregate id `%s` but got `%s`", id.String(), event.AggregateId())
+	if event.AggregateId().String() != "abc-def" {
+		t.Errorf("expected aggregate id `%s` but got `%s`", "abc-def", event.AggregateId())
 	}
 
 	if event.Timestamp().IsZero() {
-		t.Error("expected aggregate occurred at to be arround now but got an empty time")
+		t.Error("expected aggregate occurred at to be around now but got an empty time")
 	}
 }

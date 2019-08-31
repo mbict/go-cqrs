@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"github.com/mbict/go-cqrs"
-	"github.com/satori/go.uuid"
 	"log"
 	"time"
 )
@@ -16,7 +15,7 @@ type snapshotStore struct {
 	selectStmt *sql.Stmt
 }
 
-func (s *snapshotStore) Load(aggregateId uuid.UUID, aggregate cqrs.Aggregate) (int, error) {
+func (s *snapshotStore) Load(aggregateId cqrs.AggregateId, aggregate cqrs.Aggregate) (int, error) {
 	row := s.selectStmt.QueryRow(aggregateId, aggregate.AggregateName())
 
 	var jsonData []byte

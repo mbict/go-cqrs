@@ -1,7 +1,6 @@
 package cqrs
 
 import (
-	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/mock"
 	"reflect"
 	"testing"
@@ -10,7 +9,7 @@ import (
 
 //simple benchmark tests to see if the reflect will impact real world usage
 
-var fixedId = uuid.Must(uuid.NewV4())
+var fixedId = NewIntAggregateId(123)
 
 type test_eventStream struct {
 	i         int
@@ -18,11 +17,19 @@ type test_eventStream struct {
 	timestamp time.Time
 }
 
+func (s *test_eventStream) EventType() EventType {
+	return ""
+}
+
+func (s *test_eventStream) Scan(EventData) error {
+	return nil
+}
+
 func (*test_eventStream) EventName() string {
 	return "event.a"
 }
 
-func (*test_eventStream) AggregateId() uuid.UUID {
+func (*test_eventStream) AggregateId() AggregateId {
 	return fixedId
 }
 
@@ -47,10 +54,6 @@ func (*test_eventStream) Error() error {
 	return nil
 }
 
-func (*test_eventStream) Scan(Event) error {
-	return nil
-}
-
 var x = 1
 
 func callMe(e EventData) {
@@ -72,7 +75,7 @@ func BenchmarkReflectOverhead(b *testing.B) {
 }
 
 func BenchmarkAggregateRepositoryEvenPassedByValue(b *testing.B) {
-	id := uuid.Must(uuid.NewV4())
+	id := NewIntAggregateId(123)
 	event := &eventA{}
 
 	eventStore := &MockEventStore{}

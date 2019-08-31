@@ -2,7 +2,6 @@ package cqrs
 
 import (
 	"errors"
-	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"testing"
@@ -18,7 +17,7 @@ func TestShouldWriteEventsAndPublishEvents(t *testing.T) {
 		return nil
 	})
 	eventData := &eventA{}
-	event := NewEvent(uuid.Must(uuid.NewV4()), 1, time.Now(), eventData)
+	event := NewEvent(NewIntAggregateId(123), 1, time.Now(), eventData)
 	pes := NewEventPublishingEventStore(fn, es)
 
 	err := pes.WriteEvent("test", event)
@@ -40,7 +39,7 @@ func TestShouldNotPublishEventsOnEventstoreWriteError(t *testing.T) {
 		return nil
 	})
 	eventData := &eventA{}
-	event := NewEvent(uuid.Must(uuid.NewV4()), 1, time.Now(), eventData)
+	event := NewEvent(NewIntAggregateId(123), 1, time.Now(), eventData)
 	pes := NewEventPublishingEventStore(fn, es)
 
 	err := pes.WriteEvent("test", event)
@@ -62,7 +61,7 @@ func TestShouldWriteEventsAndPublishEventsAndReturnErrorFromPublish(t *testing.T
 		return expectedError
 	})
 	eventData := &eventA{}
-	event := NewEvent(uuid.Must(uuid.NewV4()), 1, time.Now(), eventData)
+	event := NewEvent(NewIntAggregateId(123), 1, time.Now(), eventData)
 	pes := NewEventPublishingEventStore(fn, es)
 
 	err := pes.WriteEvent("test", event)

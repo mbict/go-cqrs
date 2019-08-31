@@ -3,7 +3,6 @@ package cqrs
 import (
 	"errors"
 	"fmt"
-	"github.com/satori/go.uuid"
 )
 
 var (
@@ -36,7 +35,7 @@ func (r *DomainAggregateRepository) RepositoryFor(aggregateName string) Aggregat
 }
 
 //Loads an aggregate of the given type and ID
-func (r *DomainAggregateRepository) Load(aggregateType string, aggregateId uuid.UUID) (Aggregate, error) {
+func (r *DomainAggregateRepository) Load(aggregateType string, aggregateId AggregateId) (Aggregate, error) {
 	context := NewAggregateContext(aggregateId, 0)
 	aggregate := r.aggregateFactory.MakeAggregate(aggregateType, context)
 

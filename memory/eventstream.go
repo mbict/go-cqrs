@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/jinzhu/copier"
 	"github.com/mbict/go-cqrs"
-	"github.com/satori/go.uuid"
 	"time"
 )
 
@@ -36,9 +35,9 @@ func (s *EventStream) EventType() cqrs.EventType {
 	return s.currentEvent.EventType()
 }
 
-func (s *EventStream) AggregateId() uuid.UUID {
+func (s *EventStream) AggregateId() cqrs.AggregateId {
 	if s.currentEvent == nil {
-		return uuid.Nil
+		return nil
 	}
 	return s.currentEvent.AggregateId()
 }

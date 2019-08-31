@@ -1,7 +1,7 @@
 package cqrs
 
 import (
-	"github.com/satori/go.uuid"
+	"time"
 )
 
 type commandAWithValidate struct {
@@ -21,18 +21,34 @@ func (*commandNonAggregate) CommandName() string {
 }
 
 type commandA struct {
-	Id uuid.UUID
+	Id AggregateId
 }
 
 func (*commandA) CommandName() string {
 	return "commandA"
 }
 
-func (c *commandA) AggregateId() uuid.UUID {
+func (c *commandA) AggregateId() AggregateId {
 	return c.Id
 }
 
 type eventA struct {
+}
+
+func (e eventA) AggregateId() AggregateId {
+	panic("implement me")
+}
+
+func (e eventA) Version() int {
+	panic("implement me")
+}
+
+func (e eventA) Timestamp() time.Time {
+	panic("implement me")
+}
+
+func (e eventA) Data() EventData {
+	panic("implement me")
 }
 
 func (eventA) EventType() EventType {
@@ -40,6 +56,22 @@ func (eventA) EventType() EventType {
 }
 
 type eventB struct{}
+
+func (e eventB) AggregateId() AggregateId {
+	panic("implement me")
+}
+
+func (e eventB) Version() int {
+	panic("implement me")
+}
+
+func (e eventB) Timestamp() time.Time {
+	panic("implement me")
+}
+
+func (e eventB) Data() EventData {
+	panic("implement me")
+}
 
 func (eventB) EventType() EventType {
 	return "event.b"
