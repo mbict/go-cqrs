@@ -1,6 +1,7 @@
 package cqrs
 
 import (
+	"github.com/google/uuid"
 	"testing"
 )
 
@@ -11,7 +12,7 @@ func TestCallbackAggregateFactoryMake(t *testing.T) {
 		t.Errorf("expected a nil error but got error : %v", err)
 	}
 
-	id := NewStringAggregateId("abc")
+	id := uuid.New()
 	ctx := NewAggregateContext(id, 0)
 
 	aggregate := f.MakeAggregate("aggregateA", ctx)
@@ -23,7 +24,7 @@ func TestCallbackAggregateFactoryMake(t *testing.T) {
 		t.Errorf("expected an aggregate with name `%v` but got `%v`", "aggregateA", aggregate.AggregateName())
 	}
 
-	if aggregate.AggregateId().String() != "abc" {
+	if aggregate.AggregateId() != id {
 		t.Errorf("expected an aggregate with id `%v` but got `%v`", "abc", aggregate.AggregateId())
 	}
 
@@ -43,7 +44,7 @@ func TestCallbackAggregateFactoryMake(t *testing.T) {
 func TestCallbackAggregateFactoryMakeWithUnknownAggregate(t *testing.T) {
 	f := NewCallbackAggregateFactory()
 
-	ctx := NewAggregateContext(NewStringAggregateId("abc"), 0)
+	ctx := NewAggregateContext(uuid.New(), 0)
 	aggregate := f.MakeAggregate("this.aggregate.is.not.registered", ctx)
 	if aggregate != nil {
 		t.Fatalf("expected a nil response but got an aggregate instead `%T`", aggregate)

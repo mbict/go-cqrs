@@ -2,7 +2,7 @@ package mysql
 
 import (
 	"database/sql/driver"
-	"github.com/satori/go.uuid"
+	"github.com/google/uuid"
 )
 
 //mysql optimized ID key, we store it as a bytes VARBINARY(16) instead of string
@@ -18,5 +18,5 @@ func MysqlUUID(uuid uuid.UUID) UUID {
 
 //optimized way of storing uuid in mysql
 func (u UUID) Value() (driver.Value, error) {
-	return u.Bytes(), nil
+	return u.UUID, nil
 }

@@ -60,7 +60,7 @@ func (r *aggregateRepository) Load(aggregateId AggregateId) (Aggregate, error) {
 		}
 
 		//create the event with metadata
-		event := NewEvent(aggregateId, stream.Version(), stream.Timestamp(), eventData)
+		event := NewEvent(stream.Version(), stream.Timestamp(), eventData)
 
 		aggregate.Apply(event)
 		aggregate.incrementVersion()

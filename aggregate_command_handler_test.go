@@ -2,6 +2,7 @@ package cqrs
 
 import (
 	"errors"
+	"github.com/google/uuid"
 	. "github.com/stretchr/testify/mock"
 	"testing"
 )
@@ -54,7 +55,7 @@ func TestAggregateCommandHandler_NonAggregateCommand(t *testing.T) {
 func TestAggregateCommandHandler_AggregateNotFound(t *testing.T) {
 	repo := &MockAggregateRepository{}
 	repo.On("Load", Anything).Return(nil, nil)
-	command := &commandA{Id: NewIntAggregateId(123)}
+	command := &commandA{Id: uuid.New()}
 
 	err := AggregateCommandHandler(repo).Handle(nil, command)
 
@@ -77,7 +78,7 @@ func TestAggregateCommandHandler_RepositoryLoadError(t *testing.T) {
 	repoError := errors.New("repo error")
 	repo := &MockAggregateRepository{}
 	repo.On("Load", Anything).Return(nil, repoError)
-	command := &commandA{Id: NewIntAggregateId(123)}
+	command := &commandA{Id: uuid.New()}
 
 	err := AggregateCommandHandler(repo).Handle(nil, command)
 

@@ -1,20 +1,21 @@
 package cqrs
 
 import (
+	"github.com/google/uuid"
 	"testing"
 )
 
 func TestAggregateContext_AggregateId(t *testing.T) {
-	id := NewIntAggregateId(12)
+	id := uuid.New()
 	ctx := NewAggregateContext(id, 0)
 
-	if ctx.AggregateId().String() != "12" {
+	if ctx.AggregateId() != id {
 		t.Errorf("expected aggregateId %s but got %s", id.String(), ctx.AggregateId().String())
 	}
 }
 
 func TestAggregateContext_incrementVersion(t *testing.T) {
-	id := NewIntAggregateId(12)
+	id := uuid.New()
 	ctx := NewAggregateContext(id, 123)
 
 	if ctx.Version() != 123 {
@@ -37,7 +38,7 @@ func TestAggregateContext_incrementVersion(t *testing.T) {
 }
 
 func TestAggregateContext_OrignalVersionShoulReturnCommitedVersion(t *testing.T) {
-	id := NewIntAggregateId(12)
+	id := uuid.New()
 	ctx := NewAggregateContext(id, 123)
 
 	if ctx.Version() != 123 {
@@ -60,7 +61,7 @@ func TestAggregateContext_OrignalVersionShoulReturnCommitedVersion(t *testing.T)
 }
 
 func TestAggregateContext_EventsHandling(t *testing.T) {
-	id := NewIntAggregateId(12)
+	id := uuid.New()
 	ctx := NewAggregateContext(id, 0)
 
 	ctx.StoreEvent(&eventA{})

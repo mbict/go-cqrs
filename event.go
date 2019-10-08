@@ -11,14 +11,14 @@ type EventType = eventbus.EventType
 // Event
 type Event interface {
 	EventData
-	AggregateId() AggregateId
 	Version() int
 	Timestamp() time.Time
-	Data() EventData
+	Data() interface{}
 }
 
 // EventData is the actual data of the event
 type EventData interface {
+	AggregateId() AggregateId
 	EventType() EventType
 }
 
@@ -26,7 +26,6 @@ type EventData interface {
 // methods of the Event interface
 type event struct {
 	EventData
-	id        AggregateId
 	version   int
 	timestamp time.Time
 }
@@ -36,13 +35,8 @@ func (e *event) Timestamp() time.Time {
 }
 
 // Timestamp returns the date and time the event occurred the first time
-func (e *event) Data() EventData {
+func (e *event) Data() interface{} {
 	return e.EventData
-}
-
-// AggregateId returns the id of the aggregate
-func (e *event) AggregateId() AggregateId {
-	return e.id
 }
 
 // Version returns the event version/sequence in the stream
@@ -51,10 +45,9 @@ func (e *event) Version() int {
 }
 
 // NewEvent constructor with plain version
-func NewEvent(id AggregateId, version int, timestamp time.Time, data EventData) Event {
+func NewEvent(version int, timestamp time.Time, data EventData) Event {
 	return &event{
 		EventData: passEventByValue(data),
-		id:        id,
 		version:   version,
 		timestamp: timestamp,
 	}
@@ -65,7 +58,6 @@ func NewEvent(id AggregateId, version int, timestamp time.Time, data EventData) 
 func NewEventFromAggregate(aggregate AggregateContext, data EventData) Event {
 	return &event{
 		EventData: passEventByValue(data),
-		id:        aggregate.AggregateId(),
 		version:   aggregate.OriginalVersion() + len(aggregate.getUncommittedEvents()) + 1,
 		timestamp: time.Now(),
 	}

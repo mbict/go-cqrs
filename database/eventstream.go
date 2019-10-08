@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"github.com/google/uuid"
 	"github.com/mbict/go-cqrs/v4"
 	"time"
 )
@@ -47,7 +48,7 @@ func (s *EventStream) Timestamp() time.Time {
 
 func (s *EventStream) Next() bool {
 	if s.rows.Next() {
-		if s.err = s.rows.Scan(s.aggregateId.Value(), &s.eventType, &s.data, &s.version, &s.timestamp); s.err != nil {
+		if s.err = s.rows.Scan(s.aggregateId, &s.eventType, &s.data, &s.version, &s.timestamp); s.err != nil {
 			return false
 		}
 		return true
@@ -56,7 +57,7 @@ func (s *EventStream) Next() bool {
 	if s.err == nil {
 		s.err = s.rows.Err()
 	}
-	s.aggregateId = nil
+	s.aggregateId = uuid.Nil
 	s.eventType = ""
 	s.version = -1
 	s.data = nil

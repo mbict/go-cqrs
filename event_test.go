@@ -1,11 +1,12 @@
 package cqrs
 
 import (
+	"github.com/google/uuid"
 	"testing"
 )
 
 func TestNewEventBaseFromAggregate(t *testing.T) {
-	id := NewStringAggregateId("abc-def")
+	id := uuid.New()
 	agg := &MockAggregateContext{}
 	agg.On("AggregateId").Return(id)
 	agg.On("OriginalVersion").Return(10)
@@ -21,7 +22,7 @@ func TestNewEventBaseFromAggregate(t *testing.T) {
 		t.Errorf("expected event type to be `%s` but got `%s`", "event:a", event.EventType())
 	}
 
-	if event.AggregateId().String() != "abc-def" {
+	if event.AggregateId() == id {
 		t.Errorf("expected aggregate id `%s` but got `%s`", "abc-def", event.AggregateId())
 	}
 

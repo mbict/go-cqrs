@@ -2,6 +2,7 @@ package cqrs
 
 import (
 	"errors"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	"testing"
 	"time"
@@ -25,7 +26,7 @@ func TestAggregateRepository_LoadWithStreamError(t *testing.T) {
 	}
 	repo := NewAggregateRepository(store, DefaultAggregateBuilder(aggregateFactory), nil)
 
-	agg, err := repo.Load(NewIntAggregateId(123))
+	agg, err := repo.Load(uuid.New())
 	if err == nil || err.Error() != "cannot load events from stream reader, error: stream error" {
 		t.Errorf("expected error `%v`, but got error `%v`", streamError, err)
 	}
@@ -54,12 +55,13 @@ func TestAggregateRepository_LoadWithUnkownEventFactoryError(t *testing.T) {
 	aggregateFactory := func(ctx AggregateContext) Aggregate {
 		return aggregate
 	}
+
 	eventFactory := &MockEventFactory{}
 	eventFactory.On("MakeEvent", EventType("testEvent")).Return(nil)
 
 	repo := NewAggregateRepository(store, DefaultAggregateBuilder(aggregateFactory), eventFactory)
 
-	agg, err := repo.Load(NewIntAggregateId(123))
+	agg, err := repo.Load(uuid.New())
 	if err == nil || err.Error() != "the repository has no event factory registered for event type: testEvent" {
 		t.Errorf("expected error `%v`, but got error `%v`", "", err)
 	}
@@ -74,7 +76,7 @@ func TestAggregateRepository_LoadWithUnkownEventFactoryError(t *testing.T) {
 
 func TestAggregateRepository_LoadWithVersionMismatch(t *testing.T) {
 	timestamp := time.Now()
-	event := &eventA{}
+	event := &eventA{Id: uuid.New()}
 	stream := &MockEventStream{}
 	stream.On("Next").Return(true).Once()
 	stream.On("Next").Return(false)
@@ -94,7 +96,7 @@ func TestAggregateRepository_LoadWithVersionMismatch(t *testing.T) {
 
 	repo := NewAggregateRepository(store, DefaultAggregateBuilder(aggregateFactory), eventFactory)
 
-	agg, err := repo.Load(NewIntAggregateId(123))
+	agg, err := repo.Load(uuid.New())
 	if err == nil || err.Error() != "event version (999) mismatch with Aggregate next Version (1)" {
 		t.Errorf("expected version mismatch error `%v`, but got error `%v`", "event version (999) mismatch with Aggregate next Version (1)", err)
 	}
@@ -110,7 +112,7 @@ func TestAggregateRepository_LoadWithVersionMismatch(t *testing.T) {
 func TestAggregateRepository_LoadWithScanFailure(t *testing.T) {
 	timestamp := time.Now()
 	scanError := errors.New("scan error")
-	event := &eventA{}
+	event := &eventA{Id: uuid.New()}
 	stream := &MockEventStream{}
 	stream.On("Next").Return(true).Once()
 	stream.On("Next").Return(false)
@@ -131,7 +133,7 @@ func TestAggregateRepository_LoadWithScanFailure(t *testing.T) {
 
 	repo := NewAggregateRepository(store, DefaultAggregateBuilder(aggregateFactory), eventFactory)
 
-	agg, err := repo.Load(NewIntAggregateId(123))
+	agg, err := repo.Load(uuid.New())
 	if err == nil || err.Error() != "the repository cannot populate event data from stream for event type: testEvent, with error `scan error`" {
 		t.Errorf("expected a scan error, but got error `%v`", err)
 	}
@@ -164,7 +166,7 @@ func TestAggregateRepository_LoadWithNoEvents(t *testing.T) {
 
 	repo := NewAggregateRepository(store, DefaultAggregateBuilder(aggregateFactory), nil)
 
-	agg, err := repo.Load(NewIntAggregateId(123))
+	agg, err := repo.Load(uuid.New())
 	if err != nil {
 		t.Errorf("expected a nil error, but got error `%v`", err)
 	}
@@ -182,9 +184,9 @@ func TestAggregateRepository_LoadWithNoEvents(t *testing.T) {
 }
 
 func TestAggregateRepository_LoadWithOneEvent(t *testing.T) {
-	aggregateId := NewIntAggregateId(123)
+	aggregateId := uuid.New()
 	timestamp := time.Now()
-	eventData := &eventA{}
+	eventData := &eventA{Id: aggregateId}
 	stream := &MockEventStream{}
 	stream.On("Next").Return(true).Once()
 	stream.On("Next").Return(false)
@@ -226,7 +228,8 @@ func TestAggregateRepository_LoadWithOneEvent(t *testing.T) {
 }
 
 func TestAggregateRepository_LoadWithMultipleEvents(t *testing.T) {
-	eventData := &eventA{}
+	aggregateId := uuid.New()
+	eventData := &eventA{Id: aggregateId}
 	stream := &MockEventStream{}
 	stream.On("Next").Return(true).Times(3)
 	stream.On("Next").Return(false)
@@ -257,7 +260,6 @@ func TestAggregateRepository_LoadWithMultipleEvents(t *testing.T) {
 
 	repo := NewAggregateRepository(store, DefaultAggregateBuilder(aggregateFactory), eventFactory)
 
-	aggregateId := NewIntAggregateId(123)
 	agg, err := repo.Load(aggregateId)
 	if err != nil {
 		t.Errorf("expected a nil error, but got error `%v`", err)
@@ -281,10 +283,10 @@ func TestAggregateRepository_LoadWithMultipleEvents(t *testing.T) {
  *********************/
 
 func TestAggregateRepository_SaveWithErrorWriteEvent(t *testing.T) {
-	aggregateId := NewIntAggregateId(123)
+	aggregateId := uuid.New()
 	storeError := errors.New("store write error")
-	eventData := &eventA{}
-	events := []Event{NewEvent(aggregateId, 1, time.Now(), eventData)}
+	eventData := &eventA{Id: aggregateId}
+	events := []Event{NewEvent(1, time.Now(), eventData)}
 	aggregate := &MockAggregate{}
 	aggregate.On("AggregateName").Return("testAggregate")
 	aggregate.On("getUncommittedEvents").Return(events)
@@ -324,9 +326,8 @@ func TestAggregateRepository_SaveWithNoEvents(t *testing.T) {
 }
 
 func TestAggregateRepository_SaveWithOneEvent(t *testing.T) {
-	eventData := &eventA{}
-	aggregateId := NewIntAggregateId(123)
-	events := []Event{NewEvent(aggregateId, 1, time.Now(), eventData)}
+	eventData := &eventA{Id: uuid.New()}
+	events := []Event{NewEvent(1, time.Now(), eventData)}
 	aggregate := &MockAggregate{}
 	aggregate.On("AggregateName").Return("testAggregate")
 	aggregate.On("getUncommittedEvents").Return(events)
@@ -353,7 +354,7 @@ func TestAggregateRepository_SaveWithOneEvent(t *testing.T) {
 }
 
 func TestAggregateRepository_SaveWithMultipleEvents(t *testing.T) {
-	event := NewEvent(NewIntAggregateId(123), 1, time.Now(), &eventA{})
+	event := NewEvent(1, time.Now(), &eventA{Id: uuid.New()})
 	events := []Event{event, event, event}
 	aggregate := &MockAggregate{}
 	aggregate.On("AggregateName").Return("testAggregate")
@@ -383,7 +384,7 @@ func matchEventData(aggregateId AggregateId, eventData EventData, version int) i
 	return mock.MatchedBy(func(e Event) bool {
 		return e != nil &&
 			e.Data() != nil &&
-			e.AggregateId().String() == aggregateId.String() &&
+			e.AggregateId() == aggregateId &&
 			e.EventType() == "event:a" &&
 			e.Data() == eventData &&
 			e.Version() == version

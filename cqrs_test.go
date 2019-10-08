@@ -33,10 +33,11 @@ func (c *commandA) AggregateId() AggregateId {
 }
 
 type eventA struct {
+	Id AggregateId
 }
 
 func (e eventA) AggregateId() AggregateId {
-	panic("implement me")
+	return e.Id
 }
 
 func (e eventA) Version() int {
@@ -55,10 +56,12 @@ func (eventA) EventType() EventType {
 	return "event:a"
 }
 
-type eventB struct{}
+type eventB struct {
+	Id AggregateId
+}
 
 func (e eventB) AggregateId() AggregateId {
-	panic("implement me")
+	return e.Id
 }
 
 func (e eventB) Version() int {

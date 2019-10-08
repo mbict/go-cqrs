@@ -6,7 +6,6 @@ import (
 	"errors"
 	"github.com/mbict/go-cqrs/v4"
 	"github.com/mbict/go-cqrs/v4/database"
-	uuid "github.com/satori/go.uuid"
 	"log"
 	"strings"
 )
@@ -82,7 +81,7 @@ func (s *EventStore) FindStream(aggregateTypes []string, aggregateIds []cqrs.Agg
 }
 
 func (s *EventStore) LoadStream(aggregateType string, aggregateId cqrs.AggregateId, version int) (cqrs.EventStream, error) {
-	rows, err := s.selectStmt.Query(MysqlUUID(aggregateId.Value().(uuid.UUID)), aggregateType, version)
+	rows, err := s.selectStmt.Query(MysqlUUID(aggregateId), aggregateType, version)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -107,7 +106,7 @@ func (s *EventStore) WriteEvent(aggregateType string, events ...cqrs.Event) erro
 			return err
 		}
 
-		result, err := tx.Stmt(s.insertStmt).Exec(MysqlUUID(event.AggregateId().Value().(uuid.UUID)), aggregateType, event.EventType(), payload, event.Version(), event.Timestamp())
+		result, err := tx.Stmt(s.insertStmt).Exec(MysqlUUID(event.AggregateId()), aggregateType, event.EventType(), payload, event.Version(), event.Timestamp())
 		if err != nil {
 			return err
 		}

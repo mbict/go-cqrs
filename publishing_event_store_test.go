@@ -2,6 +2,7 @@ package cqrs
 
 import (
 	"errors"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"testing"
@@ -16,8 +17,8 @@ func TestShouldWriteEventsAndPublishEvents(t *testing.T) {
 		publishCalledWith = append(publishCalledWith, events...)
 		return nil
 	})
-	eventData := &eventA{}
-	event := NewEvent(NewIntAggregateId(123), 1, time.Now(), eventData)
+	eventData := &eventA{Id: uuid.New()}
+	event := NewEvent(1, time.Now(), eventData)
 	pes := NewEventPublishingEventStore(fn, es)
 
 	err := pes.WriteEvent("test", event)
@@ -38,8 +39,8 @@ func TestShouldNotPublishEventsOnEventstoreWriteError(t *testing.T) {
 		publishCalledWith = append(publishCalledWith, events...)
 		return nil
 	})
-	eventData := &eventA{}
-	event := NewEvent(NewIntAggregateId(123), 1, time.Now(), eventData)
+	eventData := &eventA{Id: uuid.New()}
+	event := NewEvent(1, time.Now(), eventData)
 	pes := NewEventPublishingEventStore(fn, es)
 
 	err := pes.WriteEvent("test", event)
@@ -60,8 +61,8 @@ func TestShouldWriteEventsAndPublishEventsAndReturnErrorFromPublish(t *testing.T
 		publishCalledWith = append(publishCalledWith, events...)
 		return expectedError
 	})
-	eventData := &eventA{}
-	event := NewEvent(NewIntAggregateId(123), 1, time.Now(), eventData)
+	eventData := &eventA{Id: uuid.New()}
+	event := NewEvent(1, time.Now(), eventData)
 	pes := NewEventPublishingEventStore(fn, es)
 
 	err := pes.WriteEvent("test", event)

@@ -64,7 +64,7 @@ func (r *DomainAggregateRepository) Load(aggregateType string, aggregateId Aggre
 		}
 
 		//create the event with metadata
-		event := NewEvent(aggregateId, stream.Version(), stream.Timestamp(), eventData)
+		event := NewEvent(stream.Version(), stream.Timestamp(), eventData)
 
 		aggregate.Apply(event)
 		aggregate.incrementVersion()

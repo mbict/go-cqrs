@@ -1,6 +1,7 @@
 package cqrs
 
 import (
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	"reflect"
 	"testing"
@@ -9,7 +10,7 @@ import (
 
 //simple benchmark tests to see if the reflect will impact real world usage
 
-var fixedId = NewIntAggregateId(123)
+var fixedId = uuid.New()
 
 type test_eventStream struct {
 	i         int
@@ -75,7 +76,7 @@ func BenchmarkReflectOverhead(b *testing.B) {
 }
 
 func BenchmarkAggregateRepositoryEvenPassedByValue(b *testing.B) {
-	id := NewIntAggregateId(123)
+	id := uuid.New()
 	event := &eventA{}
 
 	eventStore := &MockEventStore{}

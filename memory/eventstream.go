@@ -2,6 +2,7 @@ package memory
 
 import (
 	"errors"
+	"github.com/google/uuid"
 	"github.com/jinzhu/copier"
 	"github.com/mbict/go-cqrs/v4"
 	"time"
@@ -37,7 +38,7 @@ func (s *EventStream) EventType() cqrs.EventType {
 
 func (s *EventStream) AggregateId() cqrs.AggregateId {
 	if s.currentEvent == nil {
-		return nil
+		return uuid.Nil
 	}
 	return s.currentEvent.AggregateId()
 }
