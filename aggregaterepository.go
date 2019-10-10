@@ -10,7 +10,7 @@ type AggregateBuilder func(aggregateId AggregateId) (Aggregate, error)
 
 // AggregateRepository is the interface that a specific aggregate repositories should implement.
 type AggregateRepository interface {
-	//Loads an aggregate of the given type and ID
+	//Loads an aggregate based on the aggregate ID
 	Load(aggregateId AggregateId) (Aggregate, error)
 
 	//Saves the aggregate.

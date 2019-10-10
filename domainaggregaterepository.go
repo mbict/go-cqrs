@@ -2,7 +2,7 @@ package cqrs
 
 import (
 	"errors"
-	"fmt"
+	"github.com/google/uuid"
 )
 
 var (
@@ -12,84 +12,70 @@ var (
 // AggregateRepositoryManager is the managing interface who provide aggregate repository access
 type AggregateRepositoryManager interface {
 	//RepositoryFor will return the repository for the specific named aggregate
-	RepositoryFor(aggregateName string) AggregateRepository
+	RepositoryFor(aggregateName string) (AggregateRepository, error)
+
+	//Loads an aggregate based on the aggregate ID and aggregateName
+	Load(aggregateName string, aggregateId AggregateId) (Aggregate, error)
+
+	//Saves the aggregate.
+	Save(aggregate Aggregate) error
 }
 
 type DomainAggregateRepository struct {
-	eventStore       EventStore
-	eventFactory     EventFactory
-	aggregateFactory AggregateFactory
+	eventStore            EventStore
+	eventFactory          EventFactory
+	aggregateFactory      AggregateFactory
+	aggregateRepositories map[string]AggregateRepository
 }
 
 //NewRepository instantiates a new repository resolver who accepts a stream resolver
 func NewCommonDomainRepository(eventStore EventStore, eventFactory EventFactory, aggregateFactory AggregateFactory) *DomainAggregateRepository {
 	return &DomainAggregateRepository{
-		eventStore:       eventStore,
-		eventFactory:     eventFactory,
-		aggregateFactory: aggregateFactory,
+		eventStore:            eventStore,
+		eventFactory:          eventFactory,
+		aggregateFactory:      aggregateFactory,
+		aggregateRepositories: make(map[string]AggregateRepository),
 	}
 }
 
-func (r *DomainAggregateRepository) RepositoryFor(aggregateName string) AggregateRepository {
-	panic("implement me")
+func (r *DomainAggregateRepository) RepositoryFor(aggregateName string) (AggregateRepository, error) {
+	if repository, ok := r.aggregateRepositories[aggregateName]; ok {
+		return repository, nil
+	}
+
+	aggregateBuilder := r.aggregateBuilderFor(aggregateName)
+
+	//try to build the aggregate as validation
+	if agg, err := aggregateBuilder(uuid.Nil); err != nil || agg == nil {
+		return nil, ErrRepositoryNotFound
+	}
+
+	//cache the aggregateRepo and return the instance
+	r.aggregateRepositories[aggregateName] = NewAggregateRepository(r.eventStore, aggregateBuilder, r.eventFactory)
+	return r.aggregateRepositories[aggregateName], nil
+}
+
+func (r *DomainAggregateRepository) aggregateBuilderFor(aggregateName string) AggregateBuilder {
+	return func(aggregateId AggregateId) (Aggregate, error) {
+		context := NewAggregateContext(aggregateId, 0)
+		return r.aggregateFactory.MakeAggregate(aggregateName, context), nil
+	}
 }
 
 //Loads an aggregate of the given type and ID
-func (r *DomainAggregateRepository) Load(aggregateType string, aggregateId AggregateId) (Aggregate, error) {
-	context := NewAggregateContext(aggregateId, 0)
-	aggregate := r.aggregateFactory.MakeAggregate(aggregateType, context)
-
-	if aggregate == nil {
-		return nil, fmt.Errorf("the repository has no aggregate factory registered for aggregate type: %s", aggregateType)
-	}
-
-	stream, err := r.eventStore.LoadStream(aggregateType, aggregateId, context.Version())
+func (r *DomainAggregateRepository) Load(aggregateName string, aggregateId AggregateId) (Aggregate, error) {
+	repository, err := r.RepositoryFor(aggregateName)
 	if err != nil {
-		return nil, fmt.Errorf("cannot load events from stream reader for aggregate type: %s, error: %s", aggregateType, err)
+		return nil, err
 	}
-
-	for stream != nil && stream.Next() {
-		if stream.Version()-1 != aggregate.Version() {
-			return nil, fmt.Errorf("event version (%d) mismatch with Aggregate next Version (%d)", stream.Version(), aggregate.Version()+1)
-		}
-
-		eventData := r.eventFactory.MakeEvent(stream.EventType())
-		if eventData == nil {
-			return nil, fmt.Errorf("the repository has no event factory registered for event type: %s", stream.EventType())
-		}
-
-		err = stream.Scan(eventData)
-		if err != nil {
-			return nil, fmt.Errorf("the repository cannot populate event data from stream for event type: %s, with error `%s`", stream.EventType(), err)
-		}
-
-		//create the event with metadata
-		event := NewEvent(stream.Version(), stream.Timestamp(), eventData)
-
-		aggregate.Apply(event)
-		aggregate.incrementVersion()
-	}
-
-	return aggregate, nil
+	return repository.Load(aggregateId)
 }
 
 //Save will save all the events to the event store.
 func (r *DomainAggregateRepository) Save(aggregate Aggregate) error {
-	events := aggregate.getUncommittedEvents()
-	if len(events) == 0 {
-		return nil
-	}
-
-	if err := r.eventStore.WriteEvent(aggregate.AggregateName(), events...); err != nil {
+	repository, err := r.RepositoryFor(aggregate.AggregateName())
+	if err != nil {
 		return err
 	}
-	aggregate.clearUncommittedEvents()
-
-	//apply events
-	for _, event := range events {
-		aggregate.Apply(event)
-		aggregate.incrementVersion()
-	}
-
-	return nil
+	return repository.Save(aggregate)
 }
