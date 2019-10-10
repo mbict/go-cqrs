@@ -2,7 +2,6 @@
 
 package cqrs
 
-import eventbus "github.com/mbict/go-eventbus"
 import mock "github.com/stretchr/testify/mock"
 import time "time"
 import uuid "github.com/google/uuid"
@@ -43,14 +42,14 @@ func (_m *MockEventStream) Error() error {
 }
 
 // EventType provides a mock function with given fields:
-func (_m *MockEventStream) EventType() eventbus.EventType {
+func (_m *MockEventStream) EventType() string {
 	ret := _m.Called()
 
-	var r0 eventbus.EventType
-	if rf, ok := ret.Get(0).(func() eventbus.EventType); ok {
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
 		r0 = rf()
 	} else {
-		r0 = ret.Get(0).(eventbus.EventType)
+		r0 = ret.Get(0).(string)
 	}
 
 	return r0

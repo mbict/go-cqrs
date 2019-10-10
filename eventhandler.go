@@ -13,9 +13,10 @@ func (h EventHandlerFunc) Handle(event Event) error {
 }
 
 func EventbusWrapper(handler EventHandler) eventbus.EventHandlerFunc {
-	return func(event eventbus.Event) {
+	return func(event eventbus.Event) error {
 		if e, ok := event.(Event); ok {
-			handler.Handle(e)
+			return handler.Handle(e)
 		}
+		return nil
 	}
 }
