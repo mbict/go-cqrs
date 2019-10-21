@@ -49,11 +49,13 @@ func init() {
 	//snapshot version of the repository
 	snapshotStore := memory.NewSnapshotStore()
 	aggregateRepository := cqrs.NewSnapshotAggregateRepository(
-		eventStore,
 		snapshotStore,
 		2, //create a snapshot everytime we differ 2 events or more
-		cqrs.SnapshotAggregateBuilder(inventoryItemAggregateFactory, snapshotStore),
-		eventFactory)
+		cqrs.NewAggregateRepository(
+			eventStore,
+			cqrs.SnapshotAggregateBuilder(inventoryItemAggregateFactory, snapshotStore),
+			eventFactory),
+	)
 
 	// aggregate command handler is the command handler who is responsible for
 	// - creating the aggregate

@@ -110,18 +110,12 @@ func (r *snapshotAggregateRepository) Save(aggregate Aggregate) error {
 // - aggregate version 21 (snapshot version 13) will not create a snapshot
 // - aggregate version 54 (snapshot version 13) will create a snapshot for version 54
 func NewSnapshotAggregateRepository(
-	eventStore EventStore,
 	snapshotStore SnapshotStore,
 	differenceOffset int,
-	aggregateBuilder AggregateBuilder,
-	eventFactory EventFactory) AggregateRepository {
+	aggregateRepository AggregateRepository) AggregateRepository {
 	return &snapshotAggregateRepository{
-		snapshotStore:    snapshotStore,
-		differenceOffset: differenceOffset,
-		AggregateRepository: &aggregateRepository{
-			eventStore:       eventStore,
-			aggregateBuilder: aggregateBuilder,
-			eventFactory:     eventFactory,
-		},
+		snapshotStore:       snapshotStore,
+		differenceOffset:    differenceOffset,
+		AggregateRepository: aggregateRepository,
 	}
 }
