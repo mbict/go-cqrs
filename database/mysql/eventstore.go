@@ -81,7 +81,7 @@ func (s *EventStore) FindStream(aggregateTypes []string, aggregateIds []cqrs.Agg
 }
 
 func (s *EventStore) LoadStream(aggregateType string, aggregateId cqrs.AggregateId, version int) (cqrs.EventStream, error) {
-	rows, err := s.selectStmt.Query(MysqlUUID(aggregateId), aggregateType, version)
+	rows, err := s.selectStmt.Query(aggregateId, aggregateType, version)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -106,7 +106,7 @@ func (s *EventStore) WriteEvent(aggregateType string, events ...cqrs.Event) erro
 			return err
 		}
 
-		result, err := tx.Stmt(s.insertStmt).Exec(MysqlUUID(event.AggregateId()), aggregateType, event.EventType(), payload, event.Version(), event.Timestamp())
+		result, err := tx.Stmt(s.insertStmt).Exec(event.AggregateId(), aggregateType, event.EventType(), payload, event.Version(), event.Timestamp())
 		if err != nil {
 			return err
 		}
